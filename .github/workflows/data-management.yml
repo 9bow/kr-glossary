@@ -32,7 +32,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -42,12 +42,17 @@ jobs:
 
       - name: Extract issue data
         id: extract
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
         run: |
           python .github/scripts/extract-issue-data.py \
-            --issue-number ${{ github.event.issue.number }} \
-            --issue-body '${{ github.event.issue.body }}' \
-            --issue-title '${{ github.event.issue.title }}' \
-            --labels '${{ join(github.event.issue.labels.*.name, ',') }}'
+            --issue-number "$ISSUE_NUMBER" \
+            --issue-body "$ISSUE_BODY" \
+            --issue-title "$ISSUE_TITLE" \
+            --labels "$ISSUE_LABELS"
 
       - name: Create PR branch
         run: |

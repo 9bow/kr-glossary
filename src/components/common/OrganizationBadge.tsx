@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -60,25 +60,8 @@ const OrganizationBadge: React.FC<OrganizationBadgeProps> = ({
     }
   };
 
-  // 로고 이미지 로딩 및 크기 계산
-  useEffect(() => {
-    if (showLogo && organization.logo) {
-      const img = new Image();
-      img.onload = () => {
-        const maxSize = variant === 'card' ? 48 : variant === 'inline' ? 20 : 32;
-        const calculatedSize = calculateLogoSize(img.naturalWidth, img.naturalHeight, maxSize);
-        setLogoSize(calculatedSize);
-      };
-      img.onerror = () => {
-        console.warn(`Failed to load logo for ${organization.name}:`, getLogoPath(organization.homepage));
-        setLogoSize(null); // 로고 로드 실패 시 null로 설정
-      };
-      img.src = getLogoPath(organization.homepage);
-    }
-  }, [organization.homepage, organization.name, showLogo, variant]);
-
   // 로고 경로 생성 함수
-  const getLogoPath = (orgHomepage: string) => {
+  const getLogoPath = useCallback((orgHomepage: string) => {
     // 한글 이름을 영문 도메인으로 변환 시도
     const koreanToDomainMap: Record<string, string> = {
       '제이펍': 'jpub.tistory.com',
@@ -122,7 +105,24 @@ const OrganizationBadge: React.FC<OrganizationBadgeProps> = ({
       .replace(/[^a-z0-9가-힣]/g, '')
       .replace(/\s+/g, '-');
     return `/logos/${sanitizedName}.png`;
-  };
+  }, [organization.name]);
+
+  // 로고 이미지 로딩 및 크기 계산
+  useEffect(() => {
+    if (showLogo && organization.logo) {
+      const img = new Image();
+      img.onload = () => {
+        const maxSize = variant === 'card' ? 48 : variant === 'inline' ? 20 : 32;
+        const calculatedSize = calculateLogoSize(img.naturalWidth, img.naturalHeight, maxSize);
+        setLogoSize(calculatedSize);
+      };
+      img.onerror = () => {
+        console.warn(`Failed to load logo for ${organization.name}:`, getLogoPath(organization.homepage));
+        setLogoSize(null); // 로고 로드 실패 시 null로 설정
+      };
+      img.src = getLogoPath(organization.homepage);
+    }
+  }, [organization.homepage, organization.name, organization.logo, showLogo, variant, getLogoPath]);
 
   const getOrganizationIcon = (type: Organization['type']) => {
     switch (type) {

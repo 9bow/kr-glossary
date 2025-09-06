@@ -25,7 +25,7 @@ jobs:
           node-version: '18'
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
@@ -37,16 +37,18 @@ jobs:
         if: contains(github.event.issue.labels.*.name, 'term-addition')
         env:
           ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # 저장소 소유자와 이름 추출
           REPO_OWNER=$(echo "$GITHUB_REPOSITORY" | cut -d'/' -f1)
           REPO_NAME=$(echo "$GITHUB_REPOSITORY" | cut -d'/' -f2)
           
           python .github/scripts/validate-term-issue-enhanced.py \
-            --issue-number="${{ github.event.issue.number }}" \
+            --issue-number="$ISSUE_NUMBER" \
             --issue-body="$ISSUE_BODY" \
-            --github-token="${{ secrets.GITHUB_TOKEN }}" \
+            --github-token="$GITHUB_TOKEN" \
             --repo-owner="$REPO_OWNER" \
             --repo-name="$REPO_NAME"
 
@@ -91,7 +93,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
@@ -124,7 +126,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 

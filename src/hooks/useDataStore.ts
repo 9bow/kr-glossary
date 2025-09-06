@@ -182,7 +182,12 @@ export const useDataStore = create<DataStore>()(
         // 현재 메모리 사용량 확인
         const currentMemoryUsage = (() => {
           if (typeof performance !== 'undefined' && 'memory' in performance) {
-            const mem = (performance as any).memory;
+            const mem = (performance as typeof performance & {
+              memory: {
+                usedJSHeapSize: number;
+                totalJSHeapSize: number;
+              };
+            }).memory;
             return {
               used: mem.usedJSHeapSize,
               total: mem.totalJSHeapSize,

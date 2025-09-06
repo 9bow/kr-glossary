@@ -54,22 +54,6 @@ body:
     validations:
       required: true
 
-  - type: dropdown
-    id: category
-    attributes:
-      label: 카테고리
-      description: "용어가 속하는 카테고리를 선택하세요"
-      options:
-        - "ML (Machine Learning)"
-        - "DL (Deep Learning)"
-        - "NLP (Natural Language Processing)"
-        - "CV (Computer Vision)"
-        - "RL (Reinforcement Learning)"
-        - "GAI (Generative AI)"
-        - "기타"
-    validations:
-      required: true
-
   - type: input
     id: alternative_translations
     attributes:

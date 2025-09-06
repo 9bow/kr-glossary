@@ -13,13 +13,14 @@ import {
   Add,
   Edit,
 } from '@mui/icons-material';
+import type { Term, TermInput } from '../../types';
 
 type ContributionType = 'add' | 'edit' | 'report';
 
 interface TermFormProps {
   type: ContributionType;
-  initialData?: any;
-  onSubmit?: (data: any) => void;
+  initialData?: Term | TermInput;
+  onSubmit?: (data: TermInput) => void;
   onCancel?: () => void;
   disabled?: boolean;
 }

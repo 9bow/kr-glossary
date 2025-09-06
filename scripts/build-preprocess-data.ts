@@ -10,20 +10,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-
-interface Term {
-  id: string;
-  english: string;
-  korean: string;
-  definition?: {
-    korean: string;
-    english: string;
-  };
-  meanings?: any[];
-  status?: string;
-  metadata?: any;
-  [key: string]: any;
-}
+import type { Term, TermMeaning } from '../src/types/index.js';
 
 interface ValidationResult {
   isValid: boolean;
@@ -163,7 +150,7 @@ class DataPreprocessor {
   /**
    * 개별 용어 검증
    */
-  private validateTerm(term: any, index: number): ValidationResult {
+  private validateTerm(term: unknown, index: number): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -223,7 +210,7 @@ class DataPreprocessor {
   /**
    * 용어 데이터 최적화
    */
-  private optimizeTerm(term: any): Term {
+  private optimizeTerm(term: Term): Term {
     return {
       ...term,
       english: term.english.trim(),

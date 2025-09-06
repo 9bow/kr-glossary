@@ -83,7 +83,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
   }, []);
 
   // Apply search operators
-  const applySearchOperator = (query: string): string => {
+  const applySearchOperator = useCallback((query: string): string => {
     if (!query.trim()) return query;
 
     const terms = query.split(' ').filter(term => term.trim());
@@ -104,7 +104,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
       default:
         return query;
     }
-  };
+  }, [searchOperator]);
 
   // Toggle bookmark
   const toggleBookmark = (query: string) => {
@@ -156,7 +156,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
         setLoading(false);
       }
     },
-    [getCachedSearch, setCachedSearch, onSearch, applySearchOperator, searchOperator]
+    [getCachedSearch, setCachedSearch, onSearch, applySearchOperator]
   );
 
   // Debounce search on query change
