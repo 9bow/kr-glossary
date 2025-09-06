@@ -19,6 +19,7 @@ dist-ssr/
 
 # IDE and editor files
 .vscode/
+.serena/
 .idea/
 *.swp
 *.swo

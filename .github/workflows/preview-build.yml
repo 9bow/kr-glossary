@@ -138,31 +138,25 @@ jobs:
               comment.body.includes('🔍 미리보기 빌드')
             );
             
-            const commentBody = `## 🔍 미리보기 빌드 완료
-
-임시 미리보기 사이트가 성공적으로 빌드되었습니다!
-
-### 🌐 미리보기 링크
-**🚀 [임시 사이트 보기](${previewUrl})**
-
-### 📊 빌드 정보
-- **커밋**: \`${shortSha}\`
-- **빌드 시간**: ${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC
-- **상태**: ✅ 성공
-
-### 🔍 검토 포인트
-- 새로 추가된 용어가 올바르게 표시되는지 확인
-- 검색 기능이 정상 작동하는지 확인  
-- 관련 용어 링크가 올바른지 확인
-- 반응형 디자인이 적용되었는지 확인
-
-### ⚠️ 주의사항
-- 이 미리보기는 임시용입니다
-- PR이 병합되면 자동으로 제거됩니다
-- 실제 배포와 다를 수 있습니다
-
----
-*이 댓글은 자동으로 생성되었습니다. 빌드가 업데이트되면 댓글도 함께 업데이트됩니다.*`;
+            const commentBody = "## 🔍 미리보기 빌드 완료\n\n" +
+              "임시 미리보기 사이트가 성공적으로 빌드되었습니다!\n\n" +
+              "### 🌐 미리보기 링크\n" +
+              `**🚀 [임시 사이트 보기](${previewUrl})**\n\n` +
+              "### 📊 빌드 정보\n" +
+              `- **커밋**: \`${shortSha}\`\n` +
+              `- **빌드 시간**: ${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC\n` +
+              "- **상태**: ✅ 성공\n\n" +
+              "### 🔍 검토 포인트\n" +
+              "- 새로 추가된 용어가 올바르게 표시되는지 확인\n" +
+              "- 검색 기능이 정상 작동하는지 확인\n" +
+              "- 관련 용어 링크가 올바른지 확인\n" +
+              "- 반응형 디자인이 적용되었는지 확인\n\n" +
+              "### ⚠️ 주의사항\n" +
+              "- 이 미리보기는 임시용입니다\n" +
+              "- PR이 병합되면 자동으로 제거됩니다\n" +
+              "- 실제 배포와 다를 수 있습니다\n\n" +
+              "---\n" +
+              "*이 댓글은 자동으로 생성되었습니다. 빌드가 업데이트되면 댓글도 함께 업데이트됩니다.*";
 
             if (botComment) {
               // 기존 댓글 업데이트
@@ -207,18 +201,19 @@ jobs:
             const prNumber = ${{ github.event.pull_request.number }};
             
             // PR 닫힘 댓글 추가
-            const commentBody = `## 🗑️ 미리보기 정리 완료
-
-PR이 ${{ github.event.pull_request.merged && '병합' || '닫힘' }}되어 임시 미리보기 사이트가 제거되었습니다.
-
-### 📊 최종 상태
-- **결과**: ${{ github.event.pull_request.merged && '✅ 병합됨' || '❌ 닫힘' }}
-- **정리 시간**: ${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC
-
-${{ github.event.pull_request.merged && '변경사항이 메인 사이트에 반영되었습니다! 🎉' || '미리보기 사이트가 정리되었습니다.' }}
-
----
-*이 댓글은 자동으로 생성되었습니다.*`;
+            const merged = ${{ github.event.pull_request.merged }};
+            const action = merged ? '병합' : '닫힘';
+            const result = merged ? '✅ 병합됨' : '❌ 닫힘';
+            const message = merged ? '변경사항이 메인 사이트에 반영되었습니다! 🎉' : '미리보기 사이트가 정리되었습니다.';
+            
+            const commentBody = "## 🗑️ 미리보기 정리 완료\n\n" +
+              `PR이 ${action}되어 임시 미리보기 사이트가 제거되었습니다.\n\n` +
+              "### 📊 최종 상태\n" +
+              `- **결과**: ${result}\n` +
+              `- **정리 시간**: ${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC\n\n` +
+              `${message}\n\n` +
+              "---\n" +
+              "*이 댓글은 자동으로 생성되었습니다.*";
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -238,26 +233,21 @@ ${{ github.event.pull_request.merged && '변경사항이 메인 사이트에 반
           script: |
             const prNumber = ${{ github.event.pull_request.number }};
             
-            const commentBody = `## ❌ 미리보기 빌드 실패
-
-임시 미리보기 빌드가 실패했습니다.
-
-### 🔍 확인 사항
-- 데이터 파일 형식이 올바른지 확인해주세요
-- JSON 문법 오류가 없는지 검토해주세요
-- 필수 필드가 모두 포함되었는지 확인해주세요
-- Lint 및 Type 검사를 통과했는지 확인해주세요
-
-### 🛠️ 해결 방법
-1. 로컬에서 \`npm run validate\` 실행
-2. 오류 메시지 확인 및 수정
-3. 코드 푸시 후 자동 재빌드 대기
-
-### 📋 빌드 로그
-자세한 오류 내용은 [Actions 탭](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})에서 확인할 수 있습니다.
-
----
-*이 댓글은 자동으로 생성되었습니다.*`;
+            const commentBody = "## ❌ 미리보기 빌드 실패\n\n" +
+              "임시 미리보기 빌드가 실패했습니다.\n\n" +
+              "### 🔍 확인 사항\n" +
+              "- 데이터 파일 형식이 올바른지 확인해주세요\n" +
+              "- JSON 문법 오류가 없는지 검토해주세요\n" +
+              "- 필수 필드가 모두 포함되었는지 확인해주세요\n" +
+              "- Lint 및 Type 검사를 통과했는지 확인해주세요\n\n" +
+              "### 🛠️ 해결 방법\n" +
+              "1. 로컬에서 `npm run validate` 실행\n" +
+              "2. 오류 메시지 확인 및 수정\n" +
+              "3. 코드 푸시 후 자동 재빌드 대기\n\n" +
+              "### 📋 빌드 로그\n" +
+              "자세한 오류 내용은 [Actions 탭](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})에서 확인할 수 있습니다.\n\n" +
+              "---\n" +
+              "*이 댓글은 자동으로 생성되었습니다.*";
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,

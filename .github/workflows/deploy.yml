@@ -110,24 +110,19 @@ jobs:
             const prTitle = '${{ github.event.pull_request.title }}';
             const issueMatch = prTitle.match(/#(\d+)/);
             
-            const deploymentComment = `## 🚀 배포 완료
-
-PR이 성공적으로 병합되고 사이트에 반영되었습니다!
-
-### 🌐 사이트 정보
-- **메인 사이트**: [https://glossary.kr](https://glossary.kr)
-- **배포 시간**: ${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC
-- **상태**: ✅ 배포 완료
-
-### 📊 변경사항
-- 새로운 용어가 메인 사이트에 추가되었습니다
-- 검색 인덱스가 자동으로 업데이트되었습니다
-- 사이트맵이 새로 생성되었습니다
-
-감사합니다! 🎉
-
----
-*이 댓글은 자동으로 생성되었습니다.*`;
+            const deploymentComment = "## 🚀 배포 완료\n\n" +
+              "PR이 성공적으로 병합되고 사이트에 반영되었습니다!\n\n" +
+              "### 🌐 사이트 정보\n" +
+              "- **메인 사이트**: [https://glossary.kr](https://glossary.kr)\n" +
+              `- **배포 시간**: ${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC\n` +
+              "- **상태**: ✅ 배포 완료\n\n" +
+              "### 📊 변경사항\n" +
+              "- 새로운 용어가 메인 사이트에 추가되었습니다\n" +
+              "- 검색 인덱스가 자동으로 업데이트되었습니다\n" +
+              "- 사이트맵이 새로 생성되었습니다\n\n" +
+              "감사합니다! 🎉\n\n" +
+              "---\n" +
+              "*이 댓글은 자동으로 생성되었습니다.*";
 
             // PR에 댓글 추가
             await github.rest.issues.createComment({
@@ -141,24 +136,19 @@ PR이 성공적으로 병합되고 사이트에 반영되었습니다!
             if (issueMatch) {
               const issueNumber = parseInt(issueMatch[1]);
               
-              const issueComment = `## 🎉 사이트 반영 완료
-
-요청하신 용어가 성공적으로 메인 사이트에 반영되었습니다!
-
-### 🔗 확인 링크
-- **메인 사이트**: [https://glossary.kr](https://glossary.kr)
-- **관련 PR**: #${prNumber}
-
-### 📋 처리 완료 사항
-- ✅ 용어 검증 통과
-- ✅ 관리자 승인 완료  
-- ✅ 자동 PR 생성 및 병합
-- ✅ 메인 사이트 배포 완료
-
-이슈를 닫겠습니다. 기여해 주셔서 감사합니다! 🤝
-
----
-*이 댓글은 자동으로 생성되었습니다.*`;
+              const issueComment = "## 🎉 사이트 반영 완료\n\n" +
+                "요청하신 용어가 성공적으로 메인 사이트에 반영되었습니다!\n\n" +
+                "### 🔗 확인 링크\n" +
+                "- **메인 사이트**: [https://glossary.kr](https://glossary.kr)\n" +
+                `- **관련 PR**: #${prNumber}\n\n` +
+                "### 📋 처리 완료 사항\n" +
+                "- ✅ 용어 검증 통과\n" +
+                "- ✅ 관리자 승인 완료\n" +
+                "- ✅ 자동 PR 생성 및 병합\n" +
+                "- ✅ 메인 사이트 배포 완료\n\n" +
+                "이슈를 닫겠습니다. 기여해 주셔서 감사합니다! 🤝\n\n" +
+                "---\n" +
+                "*이 댓글은 자동으로 생성되었습니다.*";
               
               try {
                 await github.rest.issues.createComment({
