@@ -1,0 +1,161 @@
+/* 용어 상세 페이지 스타일 개선 */
+
+/* 인쇄 스타일 */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .term-detail-container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 20px !important;
+  }
+  
+  .term-header {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+  
+  .term-definition {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 20px;
+  }
+  
+  .term-examples {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  
+  /* 링크 URL 표시 */
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+  
+  /* 불필요한 그림자 제거 */
+  .MuiCard-root {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+}
+
+/* 고대비 모드 지원 */
+@media (prefers-contrast: high) {
+  .term-korean {
+    font-weight: bold !important;
+    color: #000 !important;
+  }
+  
+  .term-english {
+    color: #0066cc !important;
+    font-weight: 600 !important;
+  }
+  
+  .term-definition {
+    color: #000 !important;
+    line-height: 1.8 !important;
+  }
+}
+
+/* 다크 모드 개선 */
+@media (prefers-color-scheme: dark) {
+  .term-highlight {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #fff3a0;
+  }
+}
+
+/* 애니메이션 선호도 존중 */
+@media (prefers-reduced-motion: reduce) {
+  .term-card,
+  .term-button {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* 접근성 개선 */
+.term-audio-button:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
+
+.term-definition {
+  word-break: keep-all;
+  line-height: 1.7;
+}
+
+.term-example {
+  border-left: 3px solid #e3f2fd;
+  padding-left: 16px;
+  margin: 8px 0;
+}
+
+/* 스크린 리더를 위한 숨김 텍스트 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 포커스 표시 개선 */
+.focusable:focus-visible {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* 읽기 모드 스타일 */
+.reading-mode {
+  font-size: 18px;
+  line-height: 1.8;
+  max-width: 70ch;
+  margin: 0 auto;
+}
+
+.reading-mode .term-definition,
+.reading-mode .term-example {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* 모바일 최적화 */
+@media (max-width: 600px) {
+  .term-actions {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+  }
+  
+  .term-quick-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .term-meta-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+/* 텍스트 선택 스타일 */
+::selection {
+  background-color: rgba(25, 118, 210, 0.2);
+  color: inherit;
+}
+
+::-moz-selection {
+  background-color: rgba(25, 118, 210, 0.2);
+  color: inherit;
+}

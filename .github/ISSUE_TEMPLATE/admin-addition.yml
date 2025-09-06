@@ -1,0 +1,313 @@
+name: "관리자 추가"
+description: "새로운 용어집 관리자를 추가하거나 추천합니다"
+title: "[ADMIN] "
+labels: ["admin-addition", "governance"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 👨‍💼 용어집 관리자 추가 요청
+        
+        새로운 관리자를 추천하거나 자기 추천을 위한 템플릿입니다.
+        관리자는 용어 검토, 승인, 커뮤니티 관리 등의 중요한 역할을 수행합니다.
+        
+        **중요**: 모든 필수 필드(*)를 작성해 주세요.
+
+  - type: dropdown
+    id: nomination_type
+    attributes:
+      label: 추천 유형 *
+      description: "어떤 유형의 추천인가요?"
+      options:
+        - "기존 관리자 추천"
+        - "커뮤니티 추천"
+        - "자기 추천"
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### 👤 후보자 기본 정보"
+
+  - type: input
+    id: candidate_github
+    attributes:
+      label: 후보자 GitHub 사용자명 *
+      description: "관리자가 될 사용자의 GitHub 사용자명"
+      placeholder: "@username"
+    validations:
+      required: true
+
+  - type: input
+    id: candidate_name
+    attributes:
+      label: 실명 또는 공개 닉네임 *
+      description: "관리자로 활동할 때 사용할 이름"
+      placeholder: "김○○ 또는 공개 닉네임"
+    validations:
+      required: true
+
+  - type: input
+    id: candidate_email
+    attributes:
+      label: 연락 가능한 이메일 *
+      description: "관리자 업무를 위한 연락처"
+      placeholder: "admin@example.com"
+    validations:
+      required: true
+
+  - type: input
+    id: candidate_organization
+    attributes:
+      label: 소속 조직
+      description: "현재 소속 조직이나 회사 (선택사항)"
+      placeholder: "예: OO대학교, OO회사"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: specialization_area
+    attributes:
+      label: 전문 분야 *
+      description: "후보자의 주요 전문 분야를 선택하세요"
+      options:
+        - "ML (Machine Learning)"
+        - "DL (Deep Learning)"
+        - "NLP (Natural Language Processing)"
+        - "CV (Computer Vision)"
+        - "RL (Reinforcement Learning)"
+        - "GAI (Generative AI)"
+        - "전체 영역"
+        - "기타"
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### 📋 자격 요건 검증"
+
+  - type: textarea
+    id: experience_background
+    attributes:
+      label: AI/ML 분야 경험 *
+      description: |
+        후보자의 AI/ML 분야 경험을 상세히 기술해주세요.
+        (학위, 경력, 연구 경험, 프로젝트 등)
+      placeholder: |
+        - 학위: 컴퓨터공학 박사 (AI 전공)
+        - 경력: OO회사에서 ML 엔지니어 5년
+        - 연구: 자연어처리 분야 논문 10편 이상 발표
+        - 프로젝트: 대규모 언어모델 개발 및 운영
+    validations:
+      required: true
+
+  - type: textarea
+    id: translation_ability
+    attributes:
+      label: 번역 능력 증빙 *
+      description: |
+        한국어-영어 번역 능력을 증명할 수 있는 경험이나 자료
+      placeholder: |
+        - 기술 번역 경력 3년
+        - AI 관련 서적 번역 참여
+        - 국제 컨퍼런스 발표 및 통역
+        - TOEIC 990점, OPIc AL 등
+    validations:
+      required: true
+
+  - type: textarea
+    id: contribution_history
+    attributes:
+      label: 기존 기여 실적 *
+      description: |
+        이 용어집 또는 다른 오픈소스 프로젝트에 대한 기여 실적
+        (링크나 구체적인 내용 포함)
+      placeholder: |
+        - 이 용어집에 15개 용어 기여 (링크: #123, #456...)
+        - GitHub 프로젝트 기여: tensorflow/docs 번역 참여
+        - 커뮤니티 활동: AI Korea 번역팀 리더 2년
+    validations:
+      required: true
+
+  - type: input
+    id: portfolio_links
+    attributes:
+      label: 포트폴리오 링크
+      description: "GitHub 프로필, LinkedIn, 개인 홈페이지, 연구 논문 등"
+      placeholder: "https://github.com/username, https://linkedin.com/in/username"
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### 🎯 관리자 역할 및 계획"
+
+  - type: checkboxes
+    id: management_areas
+    attributes:
+      label: 담당하고 싶은 관리 영역 *
+      description: "관리자로서 담당하고 싶은 영역을 선택하세요 (복수 선택 가능)"
+      options:
+        - label: "용어 검토 및 승인"
+          required: false
+        - label: "신규 기여자 멘토링"
+          required: false
+        - label: "커뮤니티 관리 및 분쟁 조정"
+          required: false
+        - label: "기술적 개선 (워크플로우, 자동화)"
+          required: false
+        - label: "품질 관리 및 표준화"
+          required: false
+        - label: "국제 표준과의 연동"
+          required: false
+
+  - type: textarea
+    id: management_plan
+    attributes:
+      label: 관리 계획 및 비전 *
+      description: |
+        관리자가 되면 어떤 기여를 하고 싶은지, 
+        용어집 발전을 위한 계획이나 아이디어를 작성해주세요.
+      placeholder: |
+        - 신규 기여자를 위한 가이드 개선
+        - 전문 분야별 용어 표준화 작업
+        - 자동화된 품질 검증 시스템 구축
+        - 학계-산업계 용어 통일화 추진
+    validations:
+      required: true
+
+  - type: input
+    id: time_commitment
+    attributes:
+      label: 시간 투자 계획 *
+      description: "관리자 업무에 투자할 수 있는 시간 (주당 시간)"
+      placeholder: "예: 주 5시간 정도 가능"
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### 👥 추천 및 지지"
+
+  - type: textarea
+    id: recommenders
+    attributes:
+      label: 추천인 정보
+      description: |
+        기존 관리자 추천의 경우: 추천한 관리자의 GitHub 사용자명
+        커뮤니티 추천의 경우: 지지하는 커뮤니티 멤버들의 GitHub 사용자명
+        자기 추천의 경우: 본인을 지지할 수 있는 레퍼런스 연락처
+      placeholder: |
+        추천인: @admin1, @admin2
+        또는
+        지지자: @contributor1, @contributor2, @contributor3, @contributor4, @contributor5
+        또는
+        레퍼런스: professor@university.edu (지도교수), manager@company.com (직속상관)
+    validations:
+      required: false
+
+  - type: textarea
+    id: recommendation_reason
+    attributes:
+      label: 추천 이유 *
+      description: |
+        왜 이 후보자가 관리자로 적합한지 설명해주세요.
+        자기 추천의 경우 자신의 강점과 기여할 수 있는 부분을 어필해주세요.
+      placeholder: |
+        - 해당 분야의 깊은 전문 지식 보유
+        - 커뮤니티 활동에서 보여준 리더십
+        - 높은 품질의 기여 실적과 책임감
+        - 신규 기여자들에 대한 친절한 멘토링
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### ✅ 관리자 요건 확인"
+
+  - type: checkboxes
+    id: qualification_check
+    attributes:
+      label: 자격 요건 체크리스트
+      description: "후보자가 다음 요건을 충족하는지 확인해주세요"
+      options:
+        - label: "AI/ML 분야 3년 이상의 경험을 보유하고 있습니다"
+          required: true
+        - label: "한국어-영어 번역 능력을 갖추고 있습니다"
+          required: true
+        - label: "이 용어집 또는 유사 프로젝트에 기여 경험이 있습니다"
+          required: true
+        - label: "커뮤니티 활동에 적극적으로 참여할 의지가 있습니다"
+          required: true
+        - label: "관리자 역할의 책임과 의무를 이해하고 수행할 수 있습니다"
+          required: true
+
+  - type: checkboxes
+    id: agreement
+    attributes:
+      label: 동의 사항 *
+      description: "다음 사항에 동의해주세요"
+      options:
+        - label: "관리자 역할과 책임을 충분히 이해했습니다"
+          required: true
+        - label: "커뮤니티 가이드라인과 윤리 강령을 준수하겠습니다"
+          required: true
+        - label: "공정하고 투명한 심사 과정에 동의합니다"
+          required: true
+        - label: "제공한 정보가 사실임을 확인합니다"
+          required: true
+
+  - type: textarea
+    id: additional_notes
+    attributes:
+      label: 추가 설명
+      description: |
+        심사자에게 전달하고 싶은 추가 정보나 특별한 고려사항이 있다면 작성해주세요.
+      placeholder: "특별한 경험이나 해외 거주 경험, 관련 자격증, 추가 언어 능력 등"
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ### 📋 관리자 선임 프로세스
+        
+        **심사 단계:**
+        1. 🔍 **자격 요건 검증** (전문성, 기여 실적, 번역 능력)
+        2. 📋 **기존 관리자 심사** (2/3 이상 찬성 필요)
+        3. 🗣️ **커뮤니티 공개 검토** (1주일간 이의제기 기간)
+        4. ✅ **최종 승인 및 권한 부여**
+        
+        **예상 소요 시간:** 2-3주
+        
+        **심사 기준:**
+        - ✅ 전문성과 경험의 적절성
+        - ✅ 커뮤니티에 대한 기여도와 참여도  
+        - ✅ 관리자 역할 수행 능력
+        - ✅ 시간 투자 의지와 지속가능성
+        
+        감사합니다! 여러분의 참여가 용어집 품질 향상에 큰 도움이 됩니다. 🤝

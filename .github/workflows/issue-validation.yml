@@ -1,0 +1,148 @@
+name: Issue Validation and Labeling
+
+on:
+  issues:
+    types: [opened, edited]
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  validate-issue:
+    runs-on: ubuntu-latest
+    if: github.event.issue.state == 'open'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Python dependencies
+        run: |
+          pip install requests jsonschema pyyaml
+
+      - name: Validate Term Addition Issue (Enhanced)
+        if: contains(github.event.issue.labels.*.name, 'term-addition')
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          # 저장소 소유자와 이름 추출
+          REPO_OWNER=$(echo "$GITHUB_REPOSITORY" | cut -d'/' -f1)
+          REPO_NAME=$(echo "$GITHUB_REPOSITORY" | cut -d'/' -f2)
+          
+          python .github/scripts/validate-term-issue-enhanced.py \
+            --issue-number="${{ github.event.issue.number }}" \
+            --issue-body="$ISSUE_BODY" \
+            --github-token="${{ secrets.GITHUB_TOKEN }}" \
+            --repo-owner="$REPO_OWNER" \
+            --repo-name="$REPO_NAME"
+
+      - name: Validate Contributor Addition Issue
+        if: contains(github.event.issue.labels.*.name, 'contributor-addition')
+        run: |
+          python .github/scripts/validate-contributor-issue.py \
+            --issue-number="${{ github.event.issue.number }}" \
+            --issue-body="${{ github.event.issue.body }}" \
+            --github-token="${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Validate Organization Addition Issue
+        if: contains(github.event.issue.labels.*.name, 'organization-addition')
+        run: |
+          python .github/scripts/validate-organization-issue.py \
+            --issue-number="${{ github.event.issue.number }}" \
+            --issue-body="${{ github.event.issue.body }}" \
+            --github-token="${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Validate Admin Addition Issue
+        if: contains(github.event.issue.labels.*.name, 'admin-addition')
+        run: |
+          python .github/scripts/validate-admin-issue.py \
+            --issue-number="${{ github.event.issue.number }}" \
+            --issue-body="${{ github.event.issue.body }}" \
+            --github-token="${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Validate Verification Org Issue
+        if: contains(github.event.issue.labels.*.name, 'verification-org')
+        run: |
+          python .github/scripts/validate-verification-org-issue.py \
+            --issue-number="${{ github.event.issue.number }}" \
+            --issue-body="${{ github.event.issue.body }}" \
+            --github-token="${{ secrets.GITHUB_TOKEN }}"
+
+  check-approval-comments:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issue_comment' && github.event.issue.state == 'open'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Python dependencies
+        run: |
+          pip install requests jsonschema pyyaml
+
+      - name: Check Admin Approval (Enhanced)
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          # 저장소 소유자와 이름 추출
+          REPO_OWNER=$(echo "$GITHUB_REPOSITORY" | cut -d'/' -f1)
+          REPO_NAME=$(echo "$GITHUB_REPOSITORY" | cut -d'/' -f2)
+          
+          python .github/scripts/check-approval-enhanced.py \
+            --issue-number="${{ github.event.issue.number }}" \
+            --comment-author="${{ github.event.comment.user.login }}" \
+            --comment-body="${{ github.event.comment.body }}" \
+            --github-token="${{ secrets.GITHUB_TOKEN }}" \
+            --repo-owner="$REPO_OWNER" \
+            --repo-name="$REPO_NAME"
+
+  assign-reviewers:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'ready-for-review')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Python dependencies
+        run: |
+          pip install requests pyyaml
+
+      - name: Auto-assign Reviewers (Enhanced)
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          # 저장소 소유자와 이름 추출
+          REPO_OWNER=$(echo "$GITHUB_REPOSITORY" | cut -d'/' -f1)
+          REPO_NAME=$(echo "$GITHUB_REPOSITORY" | cut -d'/' -f2)
+          
+          python .github/scripts/assign-reviewers-enhanced.py \
+            --issue-number="${{ github.event.issue.number }}" \
+            --issue-labels="${{ join(github.event.issue.labels.*.name, ',') }}" \
+            --github-token="${{ secrets.GITHUB_TOKEN }}" \
+            --repo-owner="$REPO_OWNER" \
+            --repo-name="$REPO_NAME"

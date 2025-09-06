@@ -1,0 +1,205 @@
+name: Auto PR Creation from Approved Issue
+
+on:
+  repository_dispatch:
+    types: [create_pr_from_issue]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          pip install requests jsonschema pyyaml
+
+      - name: Get issue details
+        id: issue
+        run: |
+          python .github/scripts/get-issue-details.py \
+            --issue-number="${{ github.event.client_payload.issue_number }}" \
+            --github-token="${{ secrets.GITHUB_TOKEN }}"
+        env:
+          GITHUB_OUTPUT: ${{ runner.temp }}/github_output
+
+      - name: Generate term data
+        id: generate
+        run: |
+          python .github/scripts/generate-term-data.py \
+            --issue-number="${{ github.event.client_payload.issue_number }}" \
+            --issue-data="${{ steps.issue.outputs.issue-data }}" \
+            --github-token="${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Create branch and commit changes
+        id: branch
+        run: |
+          ISSUE_NUMBER="${{ github.event.client_payload.issue_number }}"
+          BRANCH_NAME="issue-${ISSUE_NUMBER}-$(date +%s)"
+          
+          # 브랜치 생성
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH_NAME"
+          
+          # 변경사항 커밋
+          git add -A
+          git commit -m "feat: 이슈 #${ISSUE_NUMBER}에서 자동 생성된 용어 추가
+
+          - 자동 생성된 PR입니다
+          - 원본 이슈: #${ISSUE_NUMBER}
+          - 관리자 승인 완료
+          
+          🤖 Generated with GitHub Actions"
+          
+          git push origin "$BRANCH_NAME"
+          echo "branch-name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = ${{ github.event.client_payload.issue_number }};
+            const branchName = '${{ steps.branch.outputs.branch-name }}';
+            
+            // 이슈 정보 가져오기
+            const issue = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber
+            });
+            
+            const issueTitle = issue.data.title;
+            const issueAuthor = issue.data.user.login;
+            
+            // PR 생성
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[AUTO] ${issueTitle}`,
+              head: branchName,
+              base: 'master',
+              body: `## 🤖 자동 생성된 PR
+
+이 PR은 승인된 이슈에서 자동으로 생성되었습니다.
+
+### 📋 원본 이슈
+- **이슈**: #${issueNumber}
+- **제출자**: @${issueAuthor}
+- **제목**: ${issueTitle}
+
+### 🔄 변경사항
+- 새로운 AI/ML 용어 추가
+- JSON 데이터 파일 업데이트
+- 검색 인덱스 자동 업데이트
+
+### ✅ 검증 완료 항목
+- [x] 이슈 템플릿 필수 필드 완성
+- [x] 데이터 품질 검증 통과
+- [x] 중복 용어 검사 통과
+- [x] 관리자 승인 완료
+- [x] JSON 스키마 검증 통과
+- [x] 자동 정렬 및 포맷팅 적용
+
+### 🔍 검토 요청사항
+- [ ] 최종 용어 검토
+- [ ] 번역 품질 확인
+- [ ] 사용 예시 적절성 검토
+- [ ] 임시 빌드 결과 확인
+
+### 📝 추가 정보
+원본 이슈 내용을 기반으로 JSON 데이터가 자동 생성되었습니다.
+변경사항은 임시 미리보기 사이트에서 확인할 수 있습니다.
+
+**관련 이슈**: #${issueNumber}
+
+---
+🤖 **자동 생성**: GitHub Actions를 통해 자동으로 생성된 PR입니다.
+`,
+              draft: false
+            });
+            
+            // PR 번호 반환
+            return pr.data.number;
+
+      - name: Update issue with PR link
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = ${{ github.event.client_payload.issue_number }};
+            const prNumber = ${{ steps.pr.outputs.result }};
+            
+            const comment = `## 🔗 자동 PR 생성 완료
+
+승인된 이슈를 바탕으로 PR이 자동 생성되었습니다!
+
+### 📋 생성된 PR
+**PR**: #${prNumber}
+
+### 🔄 다음 단계  
+1. **임시 미리보기**: 곧 임시 빌드가 완료되어 미리보기 링크가 제공됩니다
+2. **최종 검토**: 관리자가 PR을 최종 검토합니다
+3. **병합**: 검토 완료 후 자동으로 병합되어 사이트에 반영됩니다
+
+### 📊 예상 완료 시간
+- 임시 빌드: 3-5분
+- 최종 검토: 1-2일  
+- 사이트 반영: 병합 후 즉시
+
+감사합니다! 🎉
+
+---
+*이 댓글은 자동으로 생성되었습니다.*`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: comment
+            });
+
+      - name: Add labels to issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = ${{ github.event.client_payload.issue_number }};
+            
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              labels: ['pr-created']
+            });
+
+      - name: Add labels to PR
+        uses: actions/github-script@v7  
+        with:
+          script: |
+            const prNumber = ${{ steps.pr.outputs.result }};
+            
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              labels: ['auto-generated', 'term-addition']
+            });

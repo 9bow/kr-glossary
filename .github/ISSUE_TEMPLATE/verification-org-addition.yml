@@ -1,0 +1,483 @@
+name: "검증 조직 추가"
+description: "용어 검증에 참여할 조직을 추가합니다"
+title: "[ORG-VERIFY] "
+labels: ["verification-org", "governance"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🏢 검증 조직 추가 요청
+        
+        AI/ML 용어집의 품질 검증에 참여할 조직을 추가하는 템플릿입니다.
+        검증 조직은 전문성을 바탕으로 용어의 정확성과 적절성을 검토하는 중요한 역할을 합니다.
+        
+        **중요**: 모든 필수 필드(*)를 작성해 주세요.
+
+  - type: dropdown
+    id: organization_type
+    attributes:
+      label: 조직 유형 *
+      description: "신청하는 조직의 유형을 선택하세요"
+      options:
+        - "대학 및 연구기관"
+        - "AI/ML 전문 기업"
+        - "표준화 기관"
+        - "전문 출판사/번역사"
+        - "정부 기관"
+        - "비영리 재단"
+        - "기타"
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### 🏢 조직 기본 정보"
+
+  - type: input
+    id: organization_name_ko
+    attributes:
+      label: 조직명 (한국어) *
+      description: "조직의 정식 한국어 명칭"
+      placeholder: "예: 한국인공지능학회"
+    validations:
+      required: true
+
+  - type: input
+    id: organization_name_en
+    attributes:
+      label: 조직명 (영어) *
+      description: "조직의 정식 영어 명칭"
+      placeholder: "예: Korean Association for Artificial Intelligence"
+    validations:
+      required: true
+
+  - type: input
+    id: organization_website
+    attributes:
+      label: 공식 웹사이트 *
+      description: "조직의 공식 홈페이지 URL"
+      placeholder: "https://www.example.org"
+    validations:
+      required: true
+
+  - type: input
+    id: establishment_year
+    attributes:
+      label: 설립 연도 *
+      description: "조직 설립 연도 (YYYY 형식)"
+      placeholder: "예: 2010"
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: 소재지 *
+      description: "조직의 본부 또는 주 활동 지역"
+      placeholder: "예: 서울특별시, 대한민국"
+    validations:
+      required: true
+
+  - type: input
+    id: registration_number
+    attributes:
+      label: 사업자등록번호 또는 고유번호
+      description: "법인 등록번호 (공개 가능한 범위에서)"
+      placeholder: "예: 123-45-67890"
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### 🎓 전문성 및 활동 영역"
+
+  - type: checkboxes
+    id: specialization_areas
+    attributes:
+      label: 전문 분야 *
+      description: "조직의 주요 전문 분야를 선택하세요 (복수 선택 가능)"
+      options:
+        - label: "Machine Learning (기계학습)"
+          required: false
+        - label: "Deep Learning (딥러닝)"
+          required: false
+        - label: "Natural Language Processing (자연어처리)"
+          required: false
+        - label: "Computer Vision (컴퓨터 비전)"
+          required: false
+        - label: "Reinforcement Learning (강화학습)"
+          required: false
+        - label: "Generative AI (생성형 AI)"
+          required: false
+        - label: "AI Ethics (AI 윤리)"
+          required: false
+        - label: "AI 표준화"
+          required: false
+        - label: "기술 번역 및 표준화"
+          required: false
+
+  - type: textarea
+    id: expertise_description
+    attributes:
+      label: 전문성 상세 설명 *
+      description: |
+        조직의 AI/ML 분야 전문성을 구체적으로 설명해주세요.
+        (주요 활동, 연구 분야, 보유 인력, 프로젝트 등)
+      placeholder: |
+        - 주요 활동: AI 표준화 연구 및 정책 수립
+        - 연구 분야: 자연어처리, 기계번역, 언어 모델
+        - 보유 인력: AI 전문 연구원 20명, 언어학 박사 5명
+        - 프로젝트: 정부 과제 "AI 용어 표준화 연구" 3년 수행
+    validations:
+      required: true
+
+  - type: textarea
+    id: ai_activities
+    attributes:
+      label: AI/ML 관련 주요 활동 *
+      description: |
+        지난 3년간 AI/ML 분야에서 수행한 주요 활동들을 나열해주세요.
+        (연구, 프로젝트, 표준화 작업, 출판물 등)
+      placeholder: |
+        - 2022-2024: "한국어 AI 용어 표준화" 연구 프로젝트 수행
+        - 2023: 국제 AI 표준화 컨퍼런스 개최
+        - 2023-현재: AI 윤리 가이드라인 개발 참여  
+        - 출간물: "AI 용어 표준 가이드북" (2023)
+    validations:
+      required: true
+
+  - type: textarea
+    id: publications_achievements
+    attributes:
+      label: 관련 출판물 및 성과
+      description: |
+        AI/ML 용어 관련 출판물, 논문, 표준 문서, 번역서 등
+      placeholder: |
+        - "AI 용어 표준화 연구 보고서" (2023, 과학기술정보통신부)
+        - "딥러닝 용어집" (2022, ABC 출판사)
+        - 국제 표준 ISO/IEC 23053 번역 참여
+        - IEEE AI 용어 표준화 위원회 참여
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### 👤 담당자 정보"
+
+  - type: input
+    id: contact_person_name
+    attributes:
+      label: 담당자 성명 *
+      description: "조직을 대표하는 담당자의 성명"
+      placeholder: "김○○"
+    validations:
+      required: true
+
+  - type: input
+    id: contact_person_position
+    attributes:
+      label: 담당자 직책 *
+      description: "조직 내 담당자의 직책"
+      placeholder: "예: 연구소장, 표준화팀장, 번역팀장"
+    validations:
+      required: true
+
+  - type: input
+    id: contact_email
+    attributes:
+      label: 담당자 이메일 *
+      description: "공식 이메일 주소 (조직 도메인 권장)"
+      placeholder: "contact@organization.org"
+    validations:
+      required: true
+
+  - type: input
+    id: contact_phone
+    attributes:
+      label: 담당자 연락처
+      description: "업무용 연락처 (선택사항)"
+      placeholder: "02-123-4567"
+    validations:
+      required: false
+
+  - type: input
+    id: github_username
+    attributes:
+      label: 담당자 GitHub 사용자명
+      description: "GitHub에서 조직을 대표할 사용자명"
+      placeholder: "@username"
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### 🤝 참여 동기 및 계획"
+
+  - type: textarea
+    id: participation_motivation
+    attributes:
+      label: 참여 동기 *
+      description: |
+        왜 이 용어집 프로젝트에 참여하고 검증 조직이 되고 싶은지 설명해주세요.
+      placeholder: |
+        - 한국 AI 생태계 발전을 위한 표준화 작업에 기여하고 싶음
+        - 조직의 전문성을 활용하여 용어의 정확성 향상에 도움이 되고 싶음
+        - 학계와 산업계의 용어 통일화에 기여하고자 함
+    validations:
+      required: true
+
+  - type: textarea
+    id: contribution_plan
+    attributes:
+      label: 구체적인 기여 계획 *
+      description: |
+        검증 조직으로서 어떤 방식으로 기여할 계획인지 구체적으로 작성해주세요.
+      placeholder: |
+        - 주 전문 분야: 자연어처리 용어 검증
+        - 검증 방식: 주간 정기 리뷰 미팅 통한 집단 검증
+        - 인력 투입: 전문 연구원 3명이 교대로 검증 참여
+        - 응답 시간: 새로운 용어 제안 후 1주일 내 검증 완료
+        - 추가 기여: 국제 표준과의 일치성 검토
+    validations:
+      required: true
+
+  - type: dropdown
+    id: time_commitment
+    attributes:
+      label: 시간 투자 수준 *
+      description: "검증 활동에 투자할 수 있는 시간 수준"
+      options:
+        - "주 5시간 이상 (고강도)"
+        - "주 2-5시간 (중강도)"  
+        - "주 1-2시간 (저강도)"
+        - "월 2-4시간 (필요시)"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: verification_services
+    attributes:
+      label: 제공 가능한 검증 서비스 *
+      description: "조직에서 제공할 수 있는 검증 서비스를 선택하세요 (복수 선택 가능)"
+      options:
+        - label: "용어 번역의 정확성 검증"
+          required: false
+        - label: "정의의 명확성 및 완전성 검토"
+          required: false
+        - label: "사용 예시의 적절성 평가"
+          required: false
+        - label: "참고 문헌의 신뢰성 확인"
+          required: false
+        - label: "국제 표준과의 일치성 검토"
+          required: false
+        - label: "분야별 전문 용어 표준화 가이드 제공"
+          required: false
+        - label: "신규 용어 제안 및 발굴"
+          required: false
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### 📄 검증 자료"
+
+  - type: textarea
+    id: verification_documents
+    attributes:
+      label: 조직 검증 자료 *
+      description: |
+        조직의 실존성과 전문성을 입증할 수 있는 자료들을 나열해주세요.
+        (공식 문서, 인증서, 수상 내역, 언론 보도 등)
+      placeholder: |
+        - 사업자등록증: 첨부 파일 참조
+        - ISO 9001 인증서 (품질 관리)
+        - 과학기술정보통신부 "우수 연구기관" 인증 (2022)
+        - 연구 성과: SCI 논문 50편 이상 발표
+        - 언론 보도: "AI 표준화 선도 기관" (조선일보, 2023.05.15)
+    validations:
+      required: true
+
+  - type: input
+    id: recommendation_orgs
+    attributes:
+      label: 기존 검증 조직 추천서
+      description: "기존 검증 조직의 추천이 있는 경우 조직명 기재"
+      placeholder: "예: 한국AI학회, KAIST AI연구소"
+    validations:
+      required: false
+
+  - type: textarea
+    id: reference_contacts
+    attributes:
+      label: 추천인 또는 참고 연락처
+      description: |
+        조직의 전문성과 신뢰성을 증명할 수 있는 추천인이나 참고 연락처
+      placeholder: |
+        - 홍길동 교수 (서울대학교 컴퓨터공학부): hong@snu.ac.kr
+        - 김철수 박사 (ETRI 인공지능연구실): kim@etri.re.kr  
+        - 이영희 팀장 (네이버 AI Lab): lee@navercorp.com
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### 🌐 추가 정보"
+
+  - type: input
+    id: social_media_links
+    attributes:
+      label: 소셜 미디어 및 공식 채널
+      description: "LinkedIn, Twitter, YouTube 등 공식 소셜 미디어 (쉼표로 구분)"
+      placeholder: "https://linkedin.com/company/org, https://twitter.com/org_official"
+    validations:
+      required: false
+
+  - type: input
+    id: github_organization
+    attributes:
+      label: GitHub 조직 계정
+      description: "조직의 GitHub Organization이 있는 경우"
+      placeholder: "https://github.com/organization-name"
+    validations:
+      required: false
+
+  - type: textarea
+    id: logo_branding
+    attributes:
+      label: 로고 및 브랜딩 정보
+      description: |
+        조직 로고 사용을 위한 정보
+        (로고 이미지 링크, 브랜드 가이드라인, 저작권 정보 등)
+      placeholder: |
+        - 로고 이미지: https://example.org/logo.png
+        - 브랜드 컬러: #1E88E5 (파란색)
+        - 사용 가이드라인: 최소 크기 50px, 흰색 배경 권장
+        - 저작권: CC BY-SA 4.0 (출처 표기 필수)
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### ✅ 자격 요건 확인"
+
+  - type: checkboxes
+    id: qualification_verification
+    attributes:
+      label: 자격 요건 체크리스트 *
+      description: "조직이 다음 요건을 충족하는지 확인해주세요"
+      options:
+        - label: "공식적으로 등록된 조직입니다 (사업자등록증, 법인등록증 등 보유)"
+          required: true
+        - label: "3년 이상의 운영 실적을 보유하고 있습니다"
+          required: true
+        - label: "AI/ML 분야의 전문 인력과 경험을 보유하고 있습니다"
+          required: true
+        - label: "용어 검증 활동에 지속적으로 참여할 수 있습니다"
+          required: true
+        - label: "공개적으로 검증 가능한 활동 실적이 있습니다"
+          required: true
+
+  - type: checkboxes
+    id: commitment_agreement
+    attributes:
+      label: 참여 약속 *
+      description: "검증 조직으로서의 약속 사항에 동의해주세요"
+      options:
+        - label: "객관적이고 공정한 검증을 수행하겠습니다"
+          required: true
+        - label: "전문성을 바탕으로 신뢰할 수 있는 검증을 제공하겠습니다"
+          required: true
+        - label: "커뮤니티 가이드라인과 검증 기준을 준수하겠습니다"
+          required: true
+        - label: "검증 활동에 지속적으로 참여하겠습니다"
+          required: true
+        - label: "이해충돌이 있는 경우 사전에 고지하겠습니다"
+          required: true
+
+  - type: checkboxes
+    id: final_agreement
+    attributes:
+      label: 최종 동의 사항 *
+      description: "다음 사항에 동의해주세요"
+      options:
+        - label: "제공한 모든 정보가 사실임을 확인합니다"
+          required: true
+        - label: "필요시 추가 검증 자료를 제공할 수 있습니다"
+          required: true
+        - label: "공개적인 심사 과정에 동의합니다"
+          required: true
+        - label: "검증 조직 추가가 거부될 가능성이 있음을 이해합니다"
+          required: true
+
+  - type: textarea
+    id: additional_information
+    attributes:
+      label: 추가 설명
+      description: |
+        심사자에게 전달하고 싶은 추가 정보나 특별한 고려사항이 있다면 작성해주세요.
+      placeholder: |
+        - 해외 파트너십 현황
+        - 국제 표준화 기구 참여 이력  
+        - 특별한 검증 방법론이나 도구 보유
+        - 기타 어필하고 싶은 강점
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ### 📋 검증 조직 승인 프로세스
+        
+        **심사 단계:**
+        1. 🔍 **조직 검증** (실존성, 공식성, 전문성 확인)
+        2. 📊 **전문성 평가** (AI/ML 분야 경험과 능력 검토)
+        3. 🗣️ **커뮤니티 공개 검토** (2주간 의견 수렴)
+        4. 🤝 **기존 검증 조직 의견 수렴**
+        5. ✅ **최종 승인 및 권한 부여**
+        
+        **예상 소요 시간:** 3-4주
+        
+        **심사 기준:**
+        - ✅ 조직의 공식성과 신뢰성
+        - ✅ AI/ML 분야 전문성과 경험
+        - ✅ 검증 활동 수행 능력
+        - ✅ 지속적인 참여 의지
+        - ✅ 커뮤니티 기여 가능성
+        
+        **검증 조직 혜택:**
+        - 🏆 공식 검증 조직 인증 배지
+        - 📋 전문 분야별 검증 권한 부여
+        - 🤝 다른 검증 조직과의 협업 기회
+        - 📈 조직 공신력 및 브랜드 가치 향상
+        
+        감사합니다! 여러분의 전문성이 용어집 품질 향상에 큰 기여가 됩니다. 🤝

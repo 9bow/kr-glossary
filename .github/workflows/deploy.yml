@@ -1,0 +1,182 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+  # Auto-merge 후 자동 배포
+  pull_request:
+    types: [closed]
+    branches: [master]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test:run
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Validate data
+        run: |
+          python scripts/validate-terms.py
+          python scripts/check-duplicates.py
+          python scripts/validate-sorting.py
+          python scripts/validate-index.py
+
+      - name: Build project
+        run: npm run build:github
+
+      - name: Generate dynamic sitemap
+        run: |
+          python .github/scripts/generate-sitemap.py > dist/sitemap.xml
+
+      - name: Generate robots.txt
+        run: |
+          echo 'User-agent: *' > dist/robots.txt
+          echo 'Allow: /' >> dist/robots.txt
+          echo '' >> dist/robots.txt
+          echo 'Sitemap: https://glossary.kr/sitemap.xml' >> dist/robots.txt
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  notify-deployment:
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    
+    steps:
+      - name: Notify successful deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ github.event.pull_request.number }};
+            const deploymentUrl = '${{ needs.deploy.outputs.page_url }}';
+            
+            // 관련 이슈 찾기 (PR 제목에서 이슈 번호 추출)
+            const prTitle = '${{ github.event.pull_request.title }}';
+            const issueMatch = prTitle.match(/#(\d+)/);
+            
+            const deploymentComment = `## 🚀 배포 완료
+
+PR이 성공적으로 병합되고 사이트에 반영되었습니다!
+
+### 🌐 사이트 정보
+- **메인 사이트**: [https://glossary.kr](https://glossary.kr)
+- **배포 시간**: ${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC
+- **상태**: ✅ 배포 완료
+
+### 📊 변경사항
+- 새로운 용어가 메인 사이트에 추가되었습니다
+- 검색 인덱스가 자동으로 업데이트되었습니다
+- 사이트맵이 새로 생성되었습니다
+
+감사합니다! 🎉
+
+---
+*이 댓글은 자동으로 생성되었습니다.*`;
+
+            // PR에 댓글 추가
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: deploymentComment
+            });
+            
+            // 관련 이슈가 있다면 해당 이슈에도 댓글 추가
+            if (issueMatch) {
+              const issueNumber = parseInt(issueMatch[1]);
+              
+              const issueComment = `## 🎉 사이트 반영 완료
+
+요청하신 용어가 성공적으로 메인 사이트에 반영되었습니다!
+
+### 🔗 확인 링크
+- **메인 사이트**: [https://glossary.kr](https://glossary.kr)
+- **관련 PR**: #${prNumber}
+
+### 📋 처리 완료 사항
+- ✅ 용어 검증 통과
+- ✅ 관리자 승인 완료  
+- ✅ 자동 PR 생성 및 병합
+- ✅ 메인 사이트 배포 완료
+
+이슈를 닫겠습니다. 기여해 주셔서 감사합니다! 🤝
+
+---
+*이 댓글은 자동으로 생성되었습니다.*`;
+              
+              try {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  body: issueComment
+                });
+                
+                // 이슈 닫기
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  state: 'closed',
+                  labels: ['completed', 'deployed']
+                });
+              } catch (error) {
+                console.log(`이슈 #${issueNumber} 처리 중 오류:`, error.message);
+              }
+            }

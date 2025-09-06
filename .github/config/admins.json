@@ -1,0 +1,122 @@
+{
+  "admins": {
+    "admin-example-1": {
+      "role": "owner",
+      "name": "메인 관리자",
+      "specializations": ["ML", "DL", "전체 영역"],
+      "permissions": ["approve", "merge", "admin"],
+      "email": "admin1@example.com",
+      "github": "admin-example-1",
+      "active": true
+    },
+    "admin-example-2": {
+      "role": "maintainer", 
+      "name": "NLP 전문가",
+      "specializations": ["NLP", "GAI"],
+      "permissions": ["approve", "merge"],
+      "email": "nlp-expert@example.com", 
+      "github": "admin-example-2",
+      "active": true
+    },
+    "admin-example-3": {
+      "role": "reviewer",
+      "name": "CV 전문가", 
+      "specializations": ["CV", "DL"],
+      "permissions": ["approve"],
+      "email": "cv-expert@example.com",
+      "github": "admin-example-3", 
+      "active": true
+    }
+  },
+  "approval_rules": {
+    "term-addition": {
+      "min_approvals": 1,
+      "required_roles": ["owner", "maintainer", "reviewer"],
+      "specialization_match": true,
+      "description": "새로운 용어 추가는 해당 분야 전문가 1명의 승인 필요"
+    },
+    "term-modification": {
+      "min_approvals": 1,
+      "required_roles": ["reviewer", "maintainer", "owner"],
+      "specialization_match": false,
+      "description": "기존 용어 수정은 모든 분야 관리자의 승인 가능"
+    },
+    "contributor-addition": {
+      "min_approvals": 1,
+      "required_roles": ["maintainer", "owner"],
+      "specialization_match": false,
+      "description": "기여자 추가는 maintainer 이상의 승인 필요"
+    },
+    "admin-addition": {
+      "min_approvals": 2,
+      "required_roles": ["owner"],
+      "specialization_match": false,
+      "description": "관리자 추가는 owner 2명의 승인 필요"
+    },
+    "organization-addition": {
+      "min_approvals": 1,
+      "required_roles": ["maintainer", "owner"],
+      "specialization_match": false,
+      "description": "조직 추가는 maintainer 이상의 승인 필요"
+    },
+    "verification-org": {
+      "min_approvals": 2,
+      "required_roles": ["owner", "maintainer"],
+      "specialization_match": false,
+      "description": "검증 조직 추가는 2명의 승인 필요"
+    }
+  },
+  "specialization_mapping": {
+    "ML (Machine Learning)": "ML",
+    "DL (Deep Learning)": "DL", 
+    "NLP (Natural Language Processing)": "NLP",
+    "CV (Computer Vision)": "CV",
+    "RL (Reinforcement Learning)": "RL",
+    "GAI (Generative AI)": "GAI",
+    "기타": "전체 영역"
+  },
+  "auto_assignment": {
+    "enabled": true,
+    "assignment_strategy": "round_robin",
+    "max_assignees": 3,
+    "prefer_specialization": true
+  },
+  "approval_keywords": {
+    "approval": [
+      "승인",
+      "approve", 
+      "approved",
+      "lgtm",
+      "looks good to me",
+      "✅ 승인",
+      "/approve",
+      "👍 승인"
+    ],
+    "rejection": [
+      "거부",
+      "reject",
+      "rejected", 
+      "반려",
+      "❌ 반려",
+      "/reject",
+      "needs work",
+      "변경 요청"
+    ],
+    "conditional": [
+      "조건부 승인",
+      "conditional approval",
+      "lgtm with changes",
+      "approve with minor changes"
+    ]
+  },
+  "notification_settings": {
+    "mention_on_assignment": true,
+    "mention_on_approval_needed": true,
+    "send_email_notifications": false
+  },
+  "metadata": {
+    "version": "1.0",
+    "last_updated": "2024-01-15T10:30:00Z",
+    "maintained_by": "AI/ML 용어집 관리팀"
+  }
+}

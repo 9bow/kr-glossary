@@ -1,0 +1,267 @@
+name: Preview Build for PR
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'data/terms/*.json'
+      - 'data/contributors/*.json'
+      - 'data/organizations/*.json'
+      - 'src/**'
+      - 'public/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build-preview:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          pip install jsonschema
+
+      - name: Validate data files
+        run: |
+          python scripts/validate-terms.py
+          python scripts/check-duplicates.py
+          python scripts/validate-sorting.py
+          python scripts/validate-index.py
+
+      - name: Run tests
+        run: npm run test:run
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Build preview
+        run: |
+          npm run build:github
+          echo "PREVIEW_URL=https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+
+      - name: Create preview directory structure
+        run: |
+          mkdir -p preview/pr-${{ github.event.pull_request.number }}
+          cp -r dist/* preview/pr-${{ github.event.pull_request.number }}/
+
+      - name: Generate preview index
+        run: |
+          cat > preview/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>Preview Builds - AI/ML 용어집</title>
+              <meta charset="utf-8">
+              <style>
+                  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 40px; }
+                  .preview-item { background: #f8f9fa; padding: 20px; margin: 10px 0; border-radius: 8px; }
+                  .preview-link { color: #0969da; text-decoration: none; font-weight: 600; }
+                  .preview-link:hover { text-decoration: underline; }
+                  .pr-info { color: #656d76; font-size: 14px; margin-top: 8px; }
+              </style>
+          </head>
+          <body>
+              <h1>🔍 AI/ML 용어집 미리보기 빌드</h1>
+              <p>Pull Request별 미리보기 사이트 목록입니다.</p>
+              
+              <div class="preview-item">
+                  <a href="pr-${{ github.event.pull_request.number }}/" class="preview-link">
+                      PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}
+                  </a>
+                  <div class="pr-info">
+                      작성자: @${{ github.event.pull_request.user.login }} | 
+                      생성: ${{ github.event.pull_request.created_at }} |
+                      빌드: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+                  </div>
+              </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload preview artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          name: preview-${{ github.event.pull_request.number }}
+          path: ./preview
+
+      - name: Deploy preview to GitHub Pages
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: preview-${{ github.event.pull_request.number }}
+        id: preview-deployment
+
+      - name: Comment preview URL on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ github.event.pull_request.number }};
+            const previewUrl = `https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${prNumber}`;
+            const shortSha = '${{ github.event.pull_request.head.sha }}'.substring(0, 7);
+            
+            // 기존 미리보기 댓글 찾기
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            
+            const botComment = comments.data.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('🔍 미리보기 빌드')
+            );
+            
+            const commentBody = `## 🔍 미리보기 빌드 완료
+
+임시 미리보기 사이트가 성공적으로 빌드되었습니다!
+
+### 🌐 미리보기 링크
+**🚀 [임시 사이트 보기](${previewUrl})**
+
+### 📊 빌드 정보
+- **커밋**: \`${shortSha}\`
+- **빌드 시간**: ${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC
+- **상태**: ✅ 성공
+
+### 🔍 검토 포인트
+- 새로 추가된 용어가 올바르게 표시되는지 확인
+- 검색 기능이 정상 작동하는지 확인  
+- 관련 용어 링크가 올바른지 확인
+- 반응형 디자인이 적용되었는지 확인
+
+### ⚠️ 주의사항
+- 이 미리보기는 임시용입니다
+- PR이 병합되면 자동으로 제거됩니다
+- 실제 배포와 다를 수 있습니다
+
+---
+*이 댓글은 자동으로 생성되었습니다. 빌드가 업데이트되면 댓글도 함께 업데이트됩니다.*`;
+
+            if (botComment) {
+              // 기존 댓글 업데이트
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              // 새 댓글 작성
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: commentBody
+              });
+            }
+
+      - name: Add preview label to PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ github.event.pull_request.number }};
+            
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              labels: ['preview-available']
+            });
+
+  cleanup-old-previews:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'closed'
+    
+    steps:
+      - name: Cleanup closed PR preview
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ github.event.pull_request.number }};
+            
+            // PR 닫힘 댓글 추가
+            const commentBody = `## 🗑️ 미리보기 정리 완료
+
+PR이 ${{ github.event.pull_request.merged && '병합' || '닫힘' }}되어 임시 미리보기 사이트가 제거되었습니다.
+
+### 📊 최종 상태
+- **결과**: ${{ github.event.pull_request.merged && '✅ 병합됨' || '❌ 닫힘' }}
+- **정리 시간**: ${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC
+
+${{ github.event.pull_request.merged && '변경사항이 메인 사이트에 반영되었습니다! 🎉' || '미리보기 사이트가 정리되었습니다.' }}
+
+---
+*이 댓글은 자동으로 생성되었습니다.*`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: commentBody
+            });
+
+  build-status-check:
+    runs-on: ubuntu-latest
+    if: failure()
+    
+    steps:
+      - name: Comment build failure
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ github.event.pull_request.number }};
+            
+            const commentBody = `## ❌ 미리보기 빌드 실패
+
+임시 미리보기 빌드가 실패했습니다.
+
+### 🔍 확인 사항
+- 데이터 파일 형식이 올바른지 확인해주세요
+- JSON 문법 오류가 없는지 검토해주세요
+- 필수 필드가 모두 포함되었는지 확인해주세요
+- Lint 및 Type 검사를 통과했는지 확인해주세요
+
+### 🛠️ 해결 방법
+1. 로컬에서 \`npm run validate\` 실행
+2. 오류 메시지 확인 및 수정
+3. 코드 푸시 후 자동 재빌드 대기
+
+### 📋 빌드 로그
+자세한 오류 내용은 [Actions 탭](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})에서 확인할 수 있습니다.
+
+---
+*이 댓글은 자동으로 생성되었습니다.*`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: commentBody
+            });

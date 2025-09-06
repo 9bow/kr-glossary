@@ -1,0 +1,215 @@
+name: Data Management Workflow
+
+on:
+  issues:
+    types: [labeled, closed]
+  issue_comment:
+    types: [created]
+
+jobs:
+  # Issue 라벨이 "approved"로 변경되면 실행
+  process-approved-issue:
+    if: >
+      github.event.action == 'labeled' && 
+      github.event.label.name == 'approved' &&
+      (
+        contains(github.event.issue.labels.*.name, 'type:term-addition') ||
+        contains(github.event.issue.labels.*.name, 'type:term-modification') ||
+        contains(github.event.issue.labels.*.name, 'type:contributor-addition') ||
+        contains(github.event.issue.labels.*.name, 'type:organization-addition')
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt || pip install requests PyYAML jsonschema
+
+      - name: Extract issue data
+        id: extract
+        run: |
+          python .github/scripts/extract-issue-data.py \
+            --issue-number ${{ github.event.issue.number }} \
+            --issue-body '${{ github.event.issue.body }}' \
+            --issue-title '${{ github.event.issue.title }}' \
+            --labels '${{ join(github.event.issue.labels.*.name, ',') }}'
+
+      - name: Create PR branch
+        run: |
+          BRANCH_NAME="auto-pr/${{ github.event.issue.number }}-$(date +%s)"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+          git checkout -b "$BRANCH_NAME"
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+      - name: Process term addition/modification
+        if: >
+          contains(github.event.issue.labels.*.name, 'type:term-addition') ||
+          contains(github.event.issue.labels.*.name, 'type:term-modification')
+        run: |
+          python .github/scripts/process-term-data.py \
+            --issue-data-file issue_data.json \
+            --action ${{ contains(github.event.issue.labels.*.name, 'type:term-addition') && 'add' || 'modify' }}
+
+      - name: Process contributor addition
+        if: contains(github.event.issue.labels.*.name, 'type:contributor-addition')
+        run: |
+          python .github/scripts/process-contributor-data.py \
+            --issue-data-file issue_data.json
+
+      - name: Process organization addition
+        if: contains(github.event.issue.labels.*.name, 'type:organization-addition')
+        run: |
+          python .github/scripts/process-organization-data.py \
+            --issue-data-file issue_data.json
+
+      - name: Validate data integrity
+        run: |
+          python scripts/validate-terms.py
+          python scripts/validate-sorting.py
+          python scripts/check-duplicates.py
+
+      - name: Commit changes
+        run: |
+          git add data/
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            echo "HAS_CHANGES=false" >> $GITHUB_ENV
+          else
+            git commit -m "🤖 Auto-process issue #${{ github.event.issue.number }}
+
+            - Type: ${{ join(github.event.issue.labels.*.name, ', ') }}
+            - Issue: ${{ github.event.issue.title }}
+            - Processed: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+            
+            Co-authored-by: ${{ github.event.issue.user.login }} <${{ github.event.issue.user.id }}+${{ github.event.issue.user.login }}@users.noreply.github.com>"
+            echo "HAS_CHANGES=true" >> $GITHUB_ENV
+          fi
+
+      - name: Push branch and create PR
+        if: env.HAS_CHANGES == 'true'
+        run: |
+          git push origin "$BRANCH_NAME"
+          
+          # PR 본문 생성
+          cat > pr_body.md << 'EOF'
+          ## 🤖 자동 생성된 PR
+          
+          **관련 Issue**: #${{ github.event.issue.number }}
+          **처리 유형**: ${{ join(github.event.issue.labels.*.name, ', ') }}
+          
+          ### 변경사항
+          이 PR은 승인된 Issue를 바탕으로 자동 생성되었습니다.
+          
+          ### 검증 완료
+          - ✅ 데이터 유효성 검증 통과
+          - ✅ 정렬 순서 확인
+          - ✅ 중복 데이터 검사 완료
+          
+          ### 자동 병합
+          이 PR은 모든 검증이 통과하면 자동으로 병합됩니다.
+          
+          ---
+          *🤖 이 PR은 GitHub Actions에 의해 자동 생성되었습니다.*
+          EOF
+
+          # PR 생성
+          gh pr create \
+            --title "🤖 Auto-process: ${{ github.event.issue.title }}" \
+            --body-file pr_body.md \
+            --head "$BRANCH_NAME" \
+            --base main \
+            --label "type:auto-generated" \
+            --label "status:ready-to-merge"
+
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Close original issue
+        if: env.HAS_CHANGES == 'true'
+        run: |
+          gh issue close ${{ github.event.issue.number }} \
+            --comment "✅ 이 Issue는 자동으로 처리되어 PR로 변환되었습니다. 변경사항은 곧 용어집에 반영됩니다."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Auto-merge approved PRs
+  auto-merge-pr:
+    if: >
+      github.event.action == 'labeled' && 
+      github.event.label.name == 'status:ready-to-merge' &&
+      contains(github.event.issue.labels.*.name, 'type:auto-generated')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Auto-merge PR
+        run: |
+          sleep 30  # GitHub API 동기화 대기
+          gh pr merge ${{ github.event.issue.number }} \
+            --auto --squash \
+            --delete-branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Cleanup rejected issues
+  cleanup-rejected:
+    if: >
+      github.event.action == 'labeled' && 
+      github.event.label.name == 'status:rejected'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - name: Close rejected issue
+        run: |
+          gh issue close ${{ github.event.issue.number }} \
+            --comment "❌ 이 Issue는 검토 결과 반영되지 않기로 결정되었습니다. 자세한 사유는 위의 리뷰 댓글을 참고해주세요."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Monitor workflow status
+  notify-status:
+    if: >
+      github.event.action == 'labeled' && 
+      (
+        github.event.label.name == 'approved' ||
+        github.event.label.name == 'status:rejected' ||
+        github.event.label.name == 'status:needs-review'
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - name: Notify status change
+        run: |
+          if [[ "${{ github.event.label.name }}" == "approved" ]]; then
+            MESSAGE="🎉 이 제안이 승인되었습니다! 자동으로 처리 중입니다..."
+          elif [[ "${{ github.event.label.name }}" == "status:rejected" ]]; then
+            MESSAGE="❌ 이 제안은 반영되지 않습니다."
+          elif [[ "${{ github.event.label.name }}" == "status:needs-review" ]]; then
+            MESSAGE="👀 추가 검토가 필요합니다. 관리자의 피드백을 기다려주세요."
+          fi
+          
+          gh issue comment ${{ github.event.issue.number }} --body "$MESSAGE"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

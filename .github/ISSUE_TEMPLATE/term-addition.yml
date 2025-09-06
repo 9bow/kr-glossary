@@ -1,0 +1,263 @@
+name: "용어 추가/수정"
+description: "AI/ML 용어집에 새로운 용어를 추가하거나 기존 용어를 수정합니다"
+title: "[TERM] "
+labels: ["enhancement", "documentation", "term-addition"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🎯 AI/ML 용어 기여
+        
+        AI/ML 용어집에 기여해 주셔서 감사합니다! 
+        이 템플릿을 사용하여 새로운 용어를 추가하거나 기존 용어를 수정할 수 있습니다.
+        
+        **중요**: 모든 필수 필드(*)를 작성해 주세요.
+
+  - type: dropdown
+    id: contribution_type
+    attributes:
+      label: 기여 유형
+      description: "어떤 종류의 기여인가요?"
+      options:
+        - "새로운 용어 추가"
+        - "기존 용어 수정"
+        - "용어 삭제"
+        - "번역 개선"
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### 📝 기본 용어 정보"
+
+  - type: input
+    id: term_english
+    attributes:
+      label: 영어 용어
+      description: "원어 용어를 입력하세요 (영문 대소문자, 공백, 하이픈, 언더스코어만 허용)"
+      placeholder: "예: Neural Network, Deep Learning, Transformer Architecture"
+    validations:
+      required: true
+
+  - type: input
+    id: term_korean
+    attributes:
+      label: 한국어 번역
+      description: "표준 한국어 번역을 입력하세요"
+      placeholder: "예: 신경망"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: 카테고리
+      description: "용어가 속하는 카테고리를 선택하세요"
+      options:
+        - "ML (Machine Learning)"
+        - "DL (Deep Learning)"
+        - "NLP (Natural Language Processing)"
+        - "CV (Computer Vision)"
+        - "RL (Reinforcement Learning)"
+        - "GAI (Generative AI)"
+        - "기타"
+    validations:
+      required: true
+
+  - type: input
+    id: alternative_translations
+    attributes:
+      label: 대안 번역
+      description: "다른 가능한 번역들 (쉼표로 구분)"
+      placeholder: "예: 인공신경망, 뉴럴 네트워크"
+    validations:
+      required: false
+
+  - type: input
+    id: pronunciation
+    attributes:
+      label: 발음
+      description: "한국어 용어의 발음을 표기해주세요"
+      placeholder: "예: [sin-gyeong-mang]"
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### 📖 상세 정보"
+
+  - type: textarea
+    id: definition_korean
+    attributes:
+      label: 한국어 정의
+      description: "용어의 한국어 정의를 상세히 작성해주세요"
+      placeholder: "생물학적 신경망을 모방한 인공지능 알고리즘으로..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: definition_english
+    attributes:
+      label: 영어 정의
+      description: "용어의 영어 정의를 작성해주세요"
+      placeholder: "A computational model inspired by biological neural networks..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: usage_examples
+    attributes:
+      label: 사용 예시
+      description: |
+        실제 사용 예시를 한국어와 영어로 작성해주세요.
+        최소 1개, 권장 2개 이상의 예시를 포함해주세요.
+      placeholder: |
+        1. 한국어: "딥러닝은 여러 층의 신경망으로 구성됩니다."
+           영어: "Deep learning consists of multiple layers of neural networks."
+           출처: Deep Learning Book (Ian Goodfellow)
+        
+        2. 한국어: "CNN은 컨볼루션 신경망의 약자입니다."
+           영어: "CNN stands for Convolutional Neural Network."
+           출처: CS231n Course Notes
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: 참고 문헌
+      description: "신뢰할 수 있는 참고 문헌을 나열해주세요 (최소 1개)"
+      placeholder: |
+        - Ian Goodfellow et al., "Deep Learning" (2016)
+        - https://arxiv.org/abs/1234.5678
+        - Stanford CS231n Course Materials
+    validations:
+      required: true
+
+  - type: input
+    id: related_terms
+    attributes:
+      label: 관련 용어
+      description: "관련된 다른 용어들 (쉼표로 구분)"
+      placeholder: "예: Deep Learning, CNN, RNN, Backpropagation"
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### ✅ 검증 체크리스트"
+
+  - type: checkboxes
+    id: automatic_validation
+    attributes:
+      label: 자동 검증 항목
+      description: "다음 항목들이 자동으로 검증됩니다"
+      options:
+        - label: "JSON 스키마 검증 통과"
+          required: false
+        - label: "중복 용어 검사 통과"
+          required: false
+        - label: "알파벳순 정렬 확인"
+          required: false
+        - label: "검색 인덱스 일관성 확인"
+          required: false
+
+  - type: checkboxes
+    id: manual_validation
+    attributes:
+      label: 수동 검증 항목
+      description: "제출 전 다음 사항을 확인해주세요"
+      options:
+        - label: "용어 번역의 정확성을 확인했습니다"
+          required: true
+        - label: "사용 예시가 적절하고 실제 사용 사례를 반영합니다"
+          required: true
+        - label: "참고 문헌이 신뢰할 수 있는 출처입니다"
+          required: true
+        - label: "관련 용어와의 연결이 적절합니다"
+          required: false
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### 👤 기여자 정보"
+
+  - type: input
+    id: github_username
+    attributes:
+      label: GitHub 사용자명
+      description: "GitHub 사용자명을 입력하세요"
+      placeholder: "@username"
+    validations:
+      required: true
+
+  - type: input
+    id: email
+    attributes:
+      label: 이메일 (선택)
+      description: "연락 가능한 이메일 주소"
+      placeholder: "user@example.com"
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_notes
+    attributes:
+      label: 추가 설명
+      description: |
+        용어에 대한 추가 설명이나 검토자에게 전달하고 싶은 내용이 있다면 작성해주세요.
+        예: 번역 선택 이유, 특별한 고려사항, 논의가 필요한 부분 등
+      placeholder: "이 용어는 학계와 산업계에서 다르게 번역되는 경우가 있어..."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: agreement
+    attributes:
+      label: 동의 사항
+      description: "다음 사항에 동의해주세요"
+      options:
+        - label: "이 기여는 오픈소스 라이선스 하에 제공됩니다"
+          required: true
+        - label: "제공한 정보가 정확하고 검증되었음을 확인합니다"
+          required: true
+        - label: "커뮤니티 가이드라인을 읽고 준수합니다"
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ### 📋 용어 추가 가이드라인
+        
+        **필수 요구사항:**
+        - ✅ 정확한 한국어 번역 제공
+        - ✅ 최소 1개의 실제 사용 예시 포함
+        - ✅ 신뢰할 수 있는 참고 문헌 1개 이상
+        - ✅ 상세한 한국어/영어 정의
+        
+        **품질 기준:**
+        - 📝 **정의**: 한국어/영어 모두 상세하고 정확
+        - 📚 **예시**: 실제 사용 사례 2개 이상 권장
+        - 🔗 **참고문헌**: 학술 논문, 교과서, 공식 문서 등
+        - ✔️ **검증**: 최소 1명의 검증자 승인 필요
+        
+        감사합니다! 여러분의 기여가 한국 AI/ML 커뮤니티 발전에 큰 도움이 됩니다. 🤝

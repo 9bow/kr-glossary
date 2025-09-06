@@ -1,0 +1,357 @@
+name: "기여자 정보 추가"
+description: "새로운 기여자 정보를 추가하거나 기존 기여자 정보를 수정합니다"
+title: "[CONTRIBUTOR] "
+labels: ["contributor-addition", "documentation"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 👤 기여자 정보 추가
+        
+        새로운 기여자 정보를 추가하거나 기존 기여자 정보를 수정하는 템플릿입니다.
+        기여자 정보는 용어집에 기여한 모든 분들을 공개적으로 인정하고 감사를 표하기 위함입니다.
+        
+        **중요**: 모든 필수 필드(*)를 작성해 주세요.
+
+  - type: dropdown
+    id: request_type
+    attributes:
+      label: 요청 유형 *
+      description: "어떤 유형의 요청인가요?"
+      options:
+        - "신규 기여자 추가"
+        - "기존 기여자 정보 수정"
+        - "기여자 정보 삭제"
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### 👤 기여자 기본 정보"
+
+  - type: input
+    id: github_username
+    attributes:
+      label: GitHub 사용자명 *
+      description: "기여자의 GitHub 사용자명"
+      placeholder: "@username"
+    validations:
+      required: true
+
+  - type: input
+    id: display_name
+    attributes:
+      label: 표시 이름 *
+      description: "공개적으로 표시될 이름 (실명 또는 닉네임)"
+      placeholder: "김○○ 또는 선호하는 닉네임"
+    validations:
+      required: true
+
+  - type: input
+    id: organization
+    attributes:
+      label: 소속 조직
+      description: "현재 소속 조직, 회사, 대학 등 (선택사항)"
+      placeholder: "예: 서울대학교, 네이버, 프리랜서"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: specialization_fields
+    attributes:
+      label: 전문 분야
+      description: "기여자의 전문 분야를 선택하세요 (복수 선택 가능)"
+      options:
+        - label: "Machine Learning (기계학습)"
+          required: false
+        - label: "Deep Learning (딥러닝)"
+          required: false
+        - label: "Natural Language Processing (자연어처리)"
+          required: false
+        - label: "Computer Vision (컴퓨터 비전)"
+          required: false
+        - label: "Reinforcement Learning (강화학습)"
+          required: false
+        - label: "Generative AI (생성형 AI)"
+          required: false
+        - label: "AI Ethics (AI 윤리)"
+          required: false
+        - label: "Software Engineering (소프트웨어 엔지니어링)"
+          required: false
+        - label: "Technical Writing (기술 문서 작성)"
+          required: false
+        - label: "Translation (번역)"
+          required: false
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### 🤝 기여 정보"
+
+  - type: checkboxes
+    id: contribution_types
+    attributes:
+      label: 기여 유형 *
+      description: "어떤 유형의 기여를 하셨나요? (복수 선택 가능)"
+      options:
+        - label: "용어 번역/정의"
+          required: false
+        - label: "코드 개발"
+          required: false
+        - label: "문서 작성/개선"
+          required: false
+        - label: "검토/검증"
+          required: false
+        - label: "디자인/UI"
+          required: false
+        - label: "번역"
+          required: false
+        - label: "버그 리포트"
+          required: false
+        - label: "기능 제안"
+          required: false
+        - label: "커뮤니티 관리"
+          required: false
+
+  - type: input
+    id: first_contribution_date
+    attributes:
+      label: 첫 기여 날짜
+      description: "첫 번째 기여한 날짜 (YYYY-MM-DD 형식)"
+      placeholder: "예: 2024-03-15"
+    validations:
+      required: false
+
+  - type: textarea
+    id: major_contributions
+    attributes:
+      label: 주요 기여 내용
+      description: |
+        주요 기여 내용을 구체적으로 작성해주세요.
+        (Pull Request 링크, 이슈 번호, 추가한 용어 수 등)
+      placeholder: |
+        - 50개 AI/ML 용어 추가 및 번역 (PR #123, #145, #167)
+        - 웹사이트 UI 개선 (PR #89)
+        - 검색 기능 최적화 (PR #156)
+        - 용어 검증 및 검토 참여 (Issue #78, #92, #134)
+    validations:
+      required: false
+
+  - type: input
+    id: contribution_count
+    attributes:
+      label: 기여 건수
+      description: "총 기여 건수 (PR, 이슈, 커밋 등)"
+      placeholder: "예: 25"
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### 🔗 연락처 및 프로필 (선택사항)"
+
+  - type: input
+    id: email
+    attributes:
+      label: 이메일
+      description: "공개 가능한 이메일 주소 (선택사항)"
+      placeholder: "contributor@example.com"
+    validations:
+      required: false
+
+  - type: input
+    id: website
+    attributes:
+      label: 개인 웹사이트
+      description: "개인 홈페이지, 블로그, 포트폴리오 사이트 등"
+      placeholder: "https://mywebsite.com"
+    validations:
+      required: false
+
+  - type: input
+    id: linkedin
+    attributes:
+      label: LinkedIn 프로필
+      description: "LinkedIn 프로필 URL"
+      placeholder: "https://linkedin.com/in/username"
+    validations:
+      required: false
+
+  - type: input
+    id: twitter
+    attributes:
+      label: Twitter/X
+      description: "Twitter/X 계정"
+      placeholder: "@username"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: profile_visibility
+    attributes:
+      label: 프로필 사진 사용
+      description: "GitHub 프로필 사진을 기여자 페이지에 표시할까요?"
+      options:
+        - "예, GitHub 프로필 사진 사용"
+        - "아니오, 기본 아바타 사용"
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### 📝 추가 정보"
+
+  - type: dropdown
+    id: contributor_level
+    attributes:
+      label: 기여자 레벨
+      description: "기여 수준에 따른 레벨 (자동 계산되지만 참고용)"
+      options:
+        - "Bronze (1-5개 기여)"
+        - "Silver (6-15개 기여)"
+        - "Gold (16-30개 기여)"
+        - "Platinum (31개 이상 기여)"
+        - "Diamond (지속적 기여 + 멘토링)"
+    validations:
+      required: false
+
+  - type: textarea
+    id: bio_description
+    attributes:
+      label: 간단한 소개
+      description: |
+        기여자에 대한 간단한 소개 (1-2문장, 선택사항)
+        공개 프로필에 표시됩니다.
+      placeholder: |
+        예: "자연어처리 전문가로 한국어 AI 모델 개발에 관심이 많습니다."
+        또는 "소프트웨어 엔지니어로 오픈소스 프로젝트에 기여하고 있습니다."
+    validations:
+      required: false
+
+  - type: textarea
+    id: special_achievements
+    attributes:
+      label: 특별한 성과나 인정사항
+      description: |
+        기여와 관련된 특별한 성과나 받은 인정사항이 있다면 기재해주세요.
+      placeholder: |
+        - "이달의 기여자" 선정 (2024년 3월)
+        - 첫 100개 용어 달성 기여자
+        - 커뮤니티 멘토링 활동
+        - 관련 블로그 포스트나 발표 경험
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: "---"
+      
+  - type: markdown
+    attributes:
+      value: "### ✅ 검토 요청 사항"
+
+  - type: checkboxes
+    id: review_items
+    attributes:
+      label: 검토 체크리스트
+      description: "다음 항목들을 검토해주세요"
+      options:
+        - label: "기여자 정보가 정확합니다"
+          required: false
+        - label: "데이터/contributors/active-contributors.json 파일 수정이 필요합니다"
+          required: false
+        - label: "알파벳순 정렬을 유지해야 합니다"
+          required: false
+        - label: "JSON 형식이 올바른지 확인했습니다"
+          required: false
+
+  - type: dropdown
+    id: request_source
+    attributes:
+      label: 요청 주체 *
+      description: "누가 이 요청을 하고 있나요?"
+      options:
+        - "기여자 본인이 직접 요청 (Self-nomination)"
+        - "다른 기여자가 추천 (Nomination by others)"
+        - "관리자가 추가 (Admin addition)"
+    validations:
+      required: true
+
+  - type: input
+    id: requester_info
+    attributes:
+      label: 요청자 정보
+      description: "본인이 아닌 경우, 요청자의 GitHub 사용자명"
+      placeholder: "@requester_username"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: privacy_consent
+    attributes:
+      label: 개인정보 및 공개 동의 *
+      description: "다음 사항에 동의해주세요"
+      options:
+        - label: "기여자 정보가 공개적으로 표시됨을 이해합니다"
+          required: true
+        - label: "개인정보 보호에 유의하여 정보를 제공했습니다"
+          required: true
+        - label: "제공한 정보가 정확함을 확인합니다"
+          required: true
+        - label: "언제든지 정보 수정이나 삭제를 요청할 수 있음을 이해합니다"
+          required: true
+
+  - type: textarea
+    id: additional_notes
+    attributes:
+      label: 추가 설명
+      description: |
+        검토자에게 전달하고 싶은 추가 정보나 특별한 고려사항이 있다면 작성해주세요.
+      placeholder: |
+        - 기여자 정보 변경 이유
+        - 특별한 요청사항
+        - 연락처 변경 사항
+        - 기타 고려사항
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ### 📋 기여자 정보 처리 프로세스
+        
+        **처리 단계:**
+        1. 📝 **정보 검증** (GitHub 계정, 기여 실적 확인)
+        2. 🔍 **데이터 형식 검토** (JSON 구조, 필수 필드)
+        3. ✅ **관리자 승인** (정보 정확성 검토)
+        4. 🔄 **자동 PR 생성** (contributors.json 파일 업데이트)
+        5. 🚀 **사이트 반영** (기여자 페이지 업데이트)
+        
+        **예상 소요 시간:** 1-2주
+        
+        **참고사항:**
+        - 🔒 개인정보는 공개 범위 내에서만 표시됩니다
+        - ✏️ 언제든지 정보 수정을 요청할 수 있습니다
+        - 🏆 기여 수준에 따라 배지나 레벨이 자동 부여됩니다
+        - 🤝 기여자 네트워킹을 위한 연락처는 선택사항입니다
+        
+        감사합니다! 여러분의 기여가 한국 AI/ML 커뮤니티 발전에 큰 도움이 됩니다. 🤝
