@@ -10,7 +10,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import type { Term, TermMeaning } from '../src/types/index.js';
+import type { Term } from '../src/types/index.js';
 
 interface ValidationResult {
   isValid: boolean;

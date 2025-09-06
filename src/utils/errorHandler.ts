@@ -25,7 +25,7 @@ export interface ErrorContext {
   component?: string;
   action?: string;
   userId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class AppError extends Error {
@@ -106,7 +106,7 @@ export interface ErrorHandler {
   handle(error: Error | AppError, context?: ErrorContext): void;
   logError(error: Error | AppError, level: LogLevel, context?: ErrorContext): void;
   showUserError(message: string, type: ErrorType, context?: ErrorContext): void;
-  createErrorBoundary(): React.ComponentType<any>;
+  createErrorBoundary(): React.ComponentType<{ children: React.ReactNode }>;
 }
 
 class ConsoleErrorHandler implements ErrorHandler {
@@ -160,7 +160,7 @@ class ConsoleErrorHandler implements ErrorHandler {
     }
   }
 
-  createErrorBoundary(): React.ComponentType<any> {
+  createErrorBoundary(): React.ComponentType<{ children: React.ReactNode }> {
     // 기본 에러 바운더리 컴포넌트 (아래에서 구현)
     return ErrorBoundary;
   }
@@ -184,7 +184,7 @@ class ConsoleErrorHandler implements ErrorHandler {
     }
   }
 
-  private sendToExternalLogger(logData: any, level: LogLevel): void {
+  private sendToExternalLogger(logData: Record<string, unknown>, level: LogLevel): void {
     // 프로덕션 환경에서 외부 로깅 서비스로 전송
     // 예: Sentry, LogRocket, Google Analytics 등
 
@@ -280,7 +280,7 @@ export const handleAsyncError = async <T>(
   }
 };
 
-export const withErrorHandling = <T extends any[], R>(
+export const withErrorHandling = <T extends unknown[], R>(
   fn: (...args: T) => R,
   context?: ErrorContext
 ) => {

@@ -29,6 +29,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
       - name: Validate term schema
         run: python scripts/validate-terms.py
 

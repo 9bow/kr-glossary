@@ -58,7 +58,13 @@ export const useMemoryManager = () => {
     if ('memory' in performance) {
       // 메모리 사용량 모니터링 (60초마다 확인)
       const memoryMonitor = setInterval(() => {
-        const memory = (performance as any).memory;
+        const memory = (performance as typeof performance & {
+          memory: {
+            usedJSHeapSize: number;
+            totalJSHeapSize: number;
+            jsHeapSizeLimit: number;
+          };
+        }).memory;
         if (memory) {
           const usedPercent = (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
 

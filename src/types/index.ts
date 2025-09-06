@@ -170,7 +170,7 @@ export interface ApiResponse<T> {
 export interface ErrorResponse {
   code: string;
   message: string;
-  details?: any;
+  details?: Record<string, unknown>;
 }
 
 export interface ValidationError extends ErrorResponse {

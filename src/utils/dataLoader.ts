@@ -148,7 +148,13 @@ export class DataLoader {
    */
   static getMemoryUsage(): { used: number; total: number; percentage: number } {
     if (typeof performance !== 'undefined' && 'memory' in performance) {
-      const mem = (performance as any).memory;
+      const mem = (performance as typeof performance & {
+        memory: {
+          usedJSHeapSize: number;
+          totalJSHeapSize: number;
+          jsHeapSizeLimit: number;
+        };
+      }).memory;
       const used = mem.usedJSHeapSize;
       const total = mem.totalJSHeapSize;
       const percentage = (used / total) * 100;

@@ -156,7 +156,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
         setLoading(false);
       }
     },
-    [getCachedSearch, setCachedSearch, onSearch, applySearchOperator]
+    [getCachedSearch, setCachedSearch, onSearch, applySearchOperator, searchOperator]
   );
 
   // Debounce search on query change

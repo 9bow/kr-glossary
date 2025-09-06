@@ -32,13 +32,13 @@ export function usePWAInstall(): PWAInstallState {
       }
 
       // Check for iOS Safari
-      if ((window.navigator as any).standalone === true) {
+      if ('standalone' in window.navigator && (window.navigator as { standalone?: boolean }).standalone === true) {
         setIsInstalled(true);
         return;
       }
 
       // Check for Android Chrome
-      if ((window as any).chrome && (window as any).chrome.app && (window as any).chrome.app.isInstalled) {
+      if ('chrome' in window && typeof (window as { chrome?: { app?: { isInstalled?: boolean } } }).chrome?.app?.isInstalled === 'boolean' && (window as { chrome: { app: { isInstalled: boolean } } }).chrome.app.isInstalled) {
         setIsInstalled(true);
         return;
       }
@@ -65,8 +65,8 @@ export function usePWAInstall(): PWAInstallState {
       setIsInstalling(false);
 
       // Track installation
-      if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('event', 'pwa_install', {
+      if (typeof window !== 'undefined' && 'gtag' in window && typeof (window as { gtag?: (...args: unknown[]) => void }).gtag === 'function') {
+        ((window as { gtag: (...args: unknown[]) => void }).gtag)('event', 'pwa_install', {
           event_category: 'engagement',
           event_label: 'PWA Install'
         });
@@ -137,7 +137,7 @@ export function isRunningAsPWA(): boolean {
   }
 
   // Check for iOS standalone mode
-  if ((window.navigator as any).standalone === true) {
+  if ('standalone' in window.navigator && (window.navigator as { standalone?: boolean }).standalone === true) {
     return true;
   }
 

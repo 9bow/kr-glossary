@@ -15,9 +15,10 @@ const STATIC_ASSETS = [
 
 // API endpoints to cache
 const API_ENDPOINTS = [
-  '/data/terms/sample-terms.json',
+  '/data/terms/terms-a-z.json',
   '/data/contributors/active-contributors.json',
-  '/data/organizations/verified-organizations.json'
+  '/data/organizations/verified-organizations.json',
+  '/data/members/core-members.json'
 ];
 
 // Install event - cache static assets

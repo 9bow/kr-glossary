@@ -169,8 +169,8 @@ function showUpdatePrompt() {
   
   updateBtn?.addEventListener('click', () => {
     // Track update action
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'sw_update', {
+    if (typeof window !== 'undefined' && 'gtag' in window && typeof (window as { gtag?: (...args: unknown[]) => void }).gtag === 'function') {
+      ((window as { gtag: (...args: unknown[]) => void }).gtag)('event', 'sw_update', {
         event_category: 'engagement',
         event_label: 'User Updated SW'
       });

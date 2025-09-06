@@ -48,7 +48,7 @@ class SearchCache {
   private hashOptions(options: SearchOptions): string {
     const sortedKeys = Object.keys(options).sort();
     const values = sortedKeys.map(key => {
-      const value = (options as any)[key];
+      const value = options[key as keyof SearchOptions];
       return typeof value === 'object' ? JSON.stringify(value) : String(value);
     });
     return sortedKeys.join('|') + ':' + values.join('|');
@@ -411,13 +411,14 @@ export class SearchEngine {
   /**
    * 다중 검색 전략을 적용하여 더 정확한 결과를 얻습니다.
    */
-  private performMultiStrategySearch(query: string, searchOptions: any): SearchResult[] {
+  private performMultiStrategySearch(query: string, searchOptions: SearchOptions): SearchResult[] {
     const normalizedQuery = this.normalizeQuery(query);
     const results = new Map<string, SearchResult>();
 
     // 1. 정확한 구문 검색 (높은 우선순위)
     if (normalizedQuery.length >= 2) {
-      const exactResults = this.fuse.search(`"${normalizedQuery}"`, searchOptions);
+      const exactOptions = { ...searchOptions, limit: searchOptions.limit || 50 };
+      const exactResults = this.fuse.search(`"${normalizedQuery}"`, exactOptions);
       exactResults.forEach(result => {
         const score = this.calculateEnhancedScore(result, normalizedQuery, 1.5); // 정확한 매칭 가중치
         results.set(result.item.english, {
@@ -429,7 +430,8 @@ export class SearchEngine {
     }
 
     // 2. 퍼지 검색 (중간 우선순위)
-    const fuzzyResults = this.fuse.search(normalizedQuery, searchOptions);
+    const fuzzyOptions = { ...searchOptions, limit: searchOptions.limit || 50 };
+    const fuzzyResults = this.fuse.search(normalizedQuery, fuzzyOptions);
     fuzzyResults.forEach(result => {
       const existingResult = results.get(result.item.english);
       const score = this.calculateEnhancedScore(result, normalizedQuery, 1.0);
@@ -447,7 +449,7 @@ export class SearchEngine {
     if (results.size < 10 && normalizedQuery.length >= 3) {
       const partialResults = this.fuse.search(normalizedQuery, {
         ...searchOptions,
-        threshold: 0.4, // 더 관대한 임계값
+        limit: searchOptions.limit || 50,
       });
 
       partialResults.forEach(result => {
@@ -566,16 +568,16 @@ export class SearchEngine {
   /**
    * 검색 결과에서 하이라이트를 추출합니다.
    */
-  private extractHighlights(fuseResult: any, _query: string): any {
-    const highlights: any = {};
+  private extractHighlights(fuseResult: any, _query: string): Record<string, string[]> {
+    const highlights: Record<string, string[]> = {};
 
     if (fuseResult.matches) {
-      fuseResult.matches.forEach((match: any) => {
+      fuseResult.matches?.forEach((match: any) => {
         const key = match.key as keyof Term;
         if (match.indices && match.indices.length > 0) {
           const value = this.getNestedValue(fuseResult.item, key);
           if (typeof value === 'string') {
-            highlights[key] = this.createHighlightedText(value, match.indices);
+            highlights[key] = [this.createHighlightedText(value, match.indices)];
           }
         }
       });
@@ -594,7 +596,7 @@ export class SearchEngine {
   /**
    * 하이라이트된 텍스트를 생성합니다.
    */
-  private createHighlightedText(text: string, indices: readonly any[]): string {
+  private createHighlightedText(text: string, indices: any[]): string {
     let result = '';
     let lastIndex = 0;
 
@@ -672,7 +674,7 @@ export class SearchEngine {
   dispose(): void {
     if (this.fuse && !this.isDisposed) {
       // Fuse.js 인스턴스 정리
-      this.fuse = undefined as any;
+      this.fuse = null as unknown as Fuse<Term>;
       this.isDisposed = true;
       console.log('SearchEngine disposed');
     }

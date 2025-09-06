@@ -64,6 +64,7 @@ interface SearchFilters {
   sortBy?: 'relevance' | 'alphabetical' | 'date';
   hasExamples?: boolean;
   hasReferences?: boolean;
+  [key: string]: unknown;
 }
 
 const SearchResults: React.FC<SearchResultsProps> = ({

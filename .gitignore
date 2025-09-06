@@ -126,3 +126,6 @@ temp/
 # Temporary files
 *.tmp
 *.temp
+
+# Others
+bundle-analysis.json

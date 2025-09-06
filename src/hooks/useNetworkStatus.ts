@@ -1,5 +1,19 @@
 import { useState, useEffect } from 'react';
 
+interface NetworkConnection {
+  effectiveType?: '2g' | '3g' | '4g' | 'slow-2g' | string;
+  downlink?: number;
+  saveData?: boolean;
+  addEventListener: (type: string, listener: () => void) => void;
+  removeEventListener: (type: string, listener: () => void) => void;
+}
+
+interface ExtendedNavigator extends Navigator {
+  connection?: NetworkConnection;
+  mozConnection?: NetworkConnection;
+  webkitConnection?: NetworkConnection;
+}
+
 export interface NetworkStatus {
   isOnline: boolean;
   isSlowConnection: boolean;
@@ -11,7 +25,7 @@ export interface NetworkStatus {
 export function useNetworkStatus(): NetworkStatus {
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(() => {
     // Initial state
-    const navigator = window.navigator as any;
+    const navigator = window.navigator as ExtendedNavigator;
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     
     return {
@@ -25,7 +39,7 @@ export function useNetworkStatus(): NetworkStatus {
 
   useEffect(() => {
     const handleOnlineStatusChange = () => {
-      const navigator = window.navigator as any;
+      const navigator = window.navigator as ExtendedNavigator;
       const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
       
       setNetworkStatus(prev => ({
@@ -39,7 +53,7 @@ export function useNetworkStatus(): NetworkStatus {
     };
 
     const handleConnectionChange = () => {
-      const navigator = window.navigator as any;
+      const navigator = window.navigator as ExtendedNavigator;
       const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
       
       if (connection) {
@@ -58,7 +72,7 @@ export function useNetworkStatus(): NetworkStatus {
     window.addEventListener('offline', handleOnlineStatusChange);
 
     // Listen for connection changes (if supported)
-    const navigator = window.navigator as any;
+    const navigator = window.navigator as ExtendedNavigator;
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     
     if (connection) {

@@ -119,7 +119,7 @@ const SearchPage: React.FC = () => {
   };
 
   // 필터 변경 핸들러
-  const handleFilterChange = (filters: any) => {
+  const handleFilterChange = (filters: Record<string, unknown>) => {
     // TODO: 필터 기능 구현
     console.log('Filter change:', filters);
   };

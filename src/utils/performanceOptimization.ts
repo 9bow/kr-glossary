@@ -5,7 +5,7 @@ import React, { useCallback, useRef, useEffect } from 'react';
 /**
  * Debounce 훅 - 검색 등에서 성능 최적화
  */
-export function useDebounce<T extends (...args: any[]) => any>(
+export function useDebounce<T extends (...args: unknown[]) => unknown>(
   callback: T,
   delay: number
 ): T {
@@ -30,7 +30,7 @@ export function useDebounce<T extends (...args: any[]) => any>(
 /**
  * Throttle 훅 - 스크롤 이벤트 등에서 성능 최적화
  */
-export function useThrottle<T extends (...args: any[]) => any>(
+export function useThrottle<T extends (...args: unknown[]) => unknown>(
   callback: T,
   delay: number
 ): T {
@@ -84,7 +84,7 @@ export function useIntersectionObserver(
         observerRef.current.disconnect();
       }
     };
-  }, [callback]);
+  }, [callback, options]);
 
   return targetRef;
 }
@@ -222,7 +222,13 @@ export function createWorkerFromFunction(fn: (...args: unknown[]) => unknown): W
  */
 export function monitorMemoryUsage() {
   if (process.env.NODE_ENV === 'development' && 'memory' in performance) {
-    const memory = (performance as any).memory;
+    const memory = (performance as typeof performance & {
+      memory: {
+        usedJSHeapSize: number;
+        totalJSHeapSize: number;
+        jsHeapSizeLimit: number;
+      };
+    }).memory;
     console.group('Memory Usage');
     console.log('Used:', (memory.usedJSHeapSize / 1048576).toFixed(2), 'MB');
     console.log('Total:', (memory.totalJSHeapSize / 1048576).toFixed(2), 'MB');
@@ -251,11 +257,62 @@ export async function importModule<T>(
 }
 
 /**
+ * 컴포넌트 lazy loading 헬퍼
+ */
+export function createLazyComponent<T extends React.ComponentType<any>>(
+  moduleFactory: () => Promise<{ default: T }>,
+  options?: {
+    delay?: number;
+    fallback?: React.ComponentType<any>;
+  }
+): React.LazyExoticComponent<T> {
+  const { delay = 0 } = options || {};
+  
+  const loadComponent = async (): Promise<{ default: T }> => {
+    // 인위적인 지연을 추가하여 로딩 상태를 보여줄 수 있음
+    if (delay > 0) {
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+    
+    return await moduleFactory();
+  };
+  
+  return React.lazy(loadComponent);
+}
+
+/**
+ * 프리로딩 헬퍼 - 사용자가 해당 페이지로 이동하기 전에 미리 로딩
+ */
+export function preloadComponent<T>(
+  moduleFactory: () => Promise<{ default: T }>
+): Promise<{ default: T }> {
+  return moduleFactory();
+}
+
+/**
+ * 청크 우선순위 설정
+ */
+export function prioritizeChunk(chunkName: string, priority: 'high' | 'medium' | 'low' = 'medium') {
+  if ('scheduler' in window && typeof (window as { scheduler?: { postTask?: (...args: unknown[]) => void } }).scheduler?.postTask === 'function') {
+    const priorityMap = {
+      high: 'user-blocking',
+      medium: 'user-visible', 
+      low: 'background'
+    };
+    
+    ((window as { scheduler: { postTask: (callback: () => void, options: { priority: string }) => void } }).scheduler.postTask)(
+      () => console.log(`Loading chunk: ${chunkName}`),
+      { priority: priorityMap[priority] }
+    );
+  }
+}
+
+/**
  * 렌더링 성능 측정
  */
 export function measureRenderTime(componentName: string) {
-  return function <T extends React.ComponentType<any>>(WrappedComponent: T): T {
-    const MeasuredComponent = (props: any) => {
+  return function <T extends React.ComponentType<Record<string, unknown>>>(WrappedComponent: T): T {
+    const MeasuredComponent = (props: Record<string, unknown>) => {
       useEffect(() => {
         const startTime = performance.now();
         
@@ -300,14 +357,14 @@ export function useNetworkStatus() {
 /**
  * 중복 API 요청 방지
  */
-const requestCache = new Map<string, Promise<any>>();
+const requestCache = new Map<string, Promise<unknown>>();
 
 export async function deduplicateRequest<T>(
   key: string,
   requestFunction: () => Promise<T>
 ): Promise<T> {
   if (requestCache.has(key)) {
-    return requestCache.get(key);
+    return requestCache.get(key) as Promise<T>;
   }
 
   const promise = requestFunction().finally(() => {
