@@ -46,6 +46,7 @@ describe('DataLoader', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   describe('loadTerms', () => {
@@ -67,6 +68,9 @@ describe('DataLoader', () => {
           category: 'ML',
         },
       ];
+
+      // Mock import.meta.env
+      vi.stubGlobal('import.meta.env', { BASE_URL: '/' });
 
       // Mock fetch
       global.fetch = vi.fn().mockResolvedValue({
@@ -96,6 +100,9 @@ describe('DataLoader', () => {
     });
 
     it('should handle fetch errors gracefully', async () => {
+      // Mock import.meta.env
+      vi.stubGlobal('import.meta.env', { BASE_URL: '/' });
+      
       global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
       
       const result = await DataLoader.loadTerms();
@@ -104,6 +111,9 @@ describe('DataLoader', () => {
     });
 
     it('should handle non-ok responses', async () => {
+      // Mock import.meta.env
+      vi.stubGlobal('import.meta.env', { BASE_URL: '/' });
+      
       global.fetch = vi.fn().mockResolvedValue({
         ok: false,
         status: 404,
