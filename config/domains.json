@@ -1,0 +1,20 @@
+{
+  "production": {
+    "domain": "glossary.kr",
+    "protocol": "https",
+    "description": "Production domain for AI/ML glossary",
+    "canonical": true
+  },
+  "staging": {
+    "domain": "9bow.github.io/kr-glossary",
+    "protocol": "https", 
+    "description": "GitHub Pages staging environment",
+    "canonical": false
+  },
+  "development": {
+    "domain": "localhost:5173",
+    "protocol": "http",
+    "description": "Local development server",
+    "canonical": false
+  }
+}

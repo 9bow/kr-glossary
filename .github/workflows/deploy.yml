@@ -65,6 +65,22 @@ jobs:
       - name: Build project
         run: npm run build:github
 
+      - name: Generate manifest with correct paths
+        run: node scripts/generate-manifest.js --github
+
+      - name: Generate CNAME file for custom domain
+        run: |
+          # Check if custom domain should be used
+          if [ "${{ github.repository }}" = "9bow/kr-glossary" ] && [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            echo "🌐 Generating CNAME for production domain"
+            node scripts/generate-cname.js --production
+            node scripts/update-domain-urls.js --production
+          else
+            echo "🌐 Using GitHub Pages subdomain (no CNAME)"
+            node scripts/generate-cname.js --staging
+            node scripts/update-domain-urls.js --staging
+          fi
+
       - name: Generate dynamic sitemap
         run: |
           python .github/scripts/generate-sitemap.py > dist/sitemap.xml

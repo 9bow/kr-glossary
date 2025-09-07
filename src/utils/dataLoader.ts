@@ -22,7 +22,8 @@ export class DataLoader {
       console.log('Loading terms data...');
       const startTime = performance.now();
 
-      const response = await fetch('/data/terms/terms-a-z.json');
+      const basePath = import.meta.env.BASE_URL || '/';
+      const response = await fetch(`${basePath}data/terms/terms-a-z.json`);
       if (!response.ok) {
         throw new Error(`Failed to load terms: ${response.status}`);
       }
@@ -76,7 +77,8 @@ export class DataLoader {
     }
 
     try {
-      const response = await fetch('/data/organizations/verified-organizations.json');
+      const basePath = import.meta.env.BASE_URL || '/';
+      const response = await fetch(`${basePath}data/organizations/verified-organizations.json`);
       if (!response.ok) {
         throw new Error(`Failed to load organizations: ${response.status}`);
       }
@@ -106,7 +108,8 @@ export class DataLoader {
     }
 
     try {
-      const response = await fetch('/data/contributors/active-contributors.json');
+      const basePath = import.meta.env.BASE_URL || '/';
+      const response = await fetch(`${basePath}data/contributors/active-contributors.json`);
       if (!response.ok) {
         throw new Error(`Failed to load contributors: ${response.status}`);
       }

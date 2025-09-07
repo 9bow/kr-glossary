@@ -11,8 +11,9 @@ root.render(<App />)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const registration = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/'
+      const basePath = import.meta.env.BASE_URL || '/'
+      const registration = await navigator.serviceWorker.register(`${basePath}sw.js`, {
+        scope: basePath
       })
 
       console.log('[SW] Registered successfully:', registration.scope)
