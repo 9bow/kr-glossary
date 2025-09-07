@@ -34,10 +34,11 @@ jobs:
           pip install requests jsonschema pyyaml
 
       - name: Validate Term Addition Issue (Enhanced)
-        if: contains(github.event.issue.labels.*.name, 'term-addition')
+        if: contains(github.event.issue.labels.*.name, 'term-addition') || contains(github.event.issue.labels.*.name, 'type:term-addition')
         env:
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -50,10 +51,11 @@ jobs:
             --issue-body="$ISSUE_BODY" \
             --github-token="$GITHUB_TOKEN" \
             --repo-owner="$REPO_OWNER" \
-            --repo-name="$REPO_NAME"
+            --repo-name="$REPO_NAME" \
+            --issue-author="$ISSUE_AUTHOR"
 
       - name: Validate Contributor Addition Issue
-        if: contains(github.event.issue.labels.*.name, 'contributor-addition')
+        if: contains(github.event.issue.labels.*.name, 'contributor-addition') || contains(github.event.issue.labels.*.name, 'type:contributor-addition')
         run: |
           python .github/scripts/validate-contributor-issue.py \
             --issue-number="${{ github.event.issue.number }}" \
@@ -61,7 +63,7 @@ jobs:
             --github-token="${{ secrets.GITHUB_TOKEN }}"
 
       - name: Validate Organization Addition Issue
-        if: contains(github.event.issue.labels.*.name, 'organization-addition')
+        if: contains(github.event.issue.labels.*.name, 'organization-addition') || contains(github.event.issue.labels.*.name, 'type:organization-addition')
         run: |
           python .github/scripts/validate-organization-issue.py \
             --issue-number="${{ github.event.issue.number }}" \
@@ -69,7 +71,7 @@ jobs:
             --github-token="${{ secrets.GITHUB_TOKEN }}"
 
       - name: Validate Admin Addition Issue
-        if: contains(github.event.issue.labels.*.name, 'admin-addition')
+        if: contains(github.event.issue.labels.*.name, 'admin-addition') || contains(github.event.issue.labels.*.name, 'type:admin-addition')
         run: |
           python .github/scripts/validate-admin-issue.py \
             --issue-number="${{ github.event.issue.number }}" \

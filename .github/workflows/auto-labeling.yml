@@ -1,0 +1,47 @@
+name: Auto Labeling for New Issues
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  auto-label-issues:
+    runs-on: ubuntu-latest
+    if: github.event.issue.state == 'open'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install Python dependencies
+        run: |
+          pip install requests pyyaml
+
+      - name: Auto-label issue based on content
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 저장소 소유자와 이름 추출
+          REPO_OWNER=$(echo "$GITHUB_REPOSITORY" | cut -d'/' -f1)
+          REPO_NAME=$(echo "$GITHUB_REPOSITORY" | cut -d'/' -f2)
+          
+          python .github/scripts/auto-label-issues.py \
+            --issue-number="$ISSUE_NUMBER" \
+            --issue-body="$ISSUE_BODY" \
+            --issue-title="$ISSUE_TITLE" \
+            --github-token="$GITHUB_TOKEN" \
+            --repo-owner="$REPO_OWNER" \
+            --repo-name="$REPO_NAME"

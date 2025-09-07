@@ -186,11 +186,11 @@ body:
   - type: input
     id: github_username
     attributes:
-      label: GitHub 사용자명
-      description: "GitHub 사용자명을 입력하세요"
-      placeholder: "@username"
+      label: GitHub 사용자명 (선택)
+      description: "GitHub 사용자명을 입력하세요. 비어두면 이슈 작성자로 자동 설정됩니다."
+      placeholder: "@username (선택사항)"
     validations:
-      required: true
+      required: false
 
   - type: input
     id: email

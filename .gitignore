@@ -135,3 +135,4 @@ bundle-analysis.json
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+.playwright-mcp/

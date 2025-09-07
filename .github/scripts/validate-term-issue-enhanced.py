@@ -30,22 +30,22 @@ class TermIssueValidator:
         """이슈 본문을 파싱하여 필드별 데이터 추출"""
         parsed_data = {}
         
-        # YAML 형식 이슈 템플릿에서 데이터 추출하는 정규식 패턴들
+        # GitHub 이슈 템플릿 실제 출력 형식에 맞춘 정규식 패턴들
         patterns = {
-            'contribution_type': r'기여 유형\s*\n.*?\n.*?- (.+)',
-            'term_english': r'영어 용어\s*\n.*?\n(.+?)(?:\n|$)',
-            'term_korean': r'한국어 번역\s*\n.*?\n(.+?)(?:\n|$)',
-            'category': r'카테고리\s*\n.*?\n.*?- (.+)',
-            'alternative_translations': r'대안 번역\s*\n.*?\n(.+?)(?:\n|$)',
-            'pronunciation': r'발음\s*\n.*?\n(.+?)(?:\n|$)',
-            'definition_korean': r'한국어 정의\s*\n.*?\n(.+?)(?:\n\n|\Z)',
-            'definition_english': r'영어 정의\s*\n.*?\n(.+?)(?:\n\n|\Z)',
-            'usage_examples': r'사용 예시\s*\n.*?\n(.+?)(?:\n\n|\Z)',
-            'references': r'참고 문헌\s*\n.*?\n(.+?)(?:\n\n|\Z)',
-            'related_terms': r'관련 용어\s*\n.*?\n(.+?)(?:\n|$)',
-            'github_username': r'GitHub 사용자명\s*\n.*?\n(.+?)(?:\n|$)',
-            'email': r'이메일.*?\n.*?\n(.+?)(?:\n|$)',
-            'additional_notes': r'추가 설명\s*\n.*?\n(.+?)(?:\n\n|\Z)'
+            'contribution_type': r'### 기여 유형\s*\n\s*(.+?)(?:\s*\n|$)',
+            'term_english': r'### 영어 용어\s*\n\s*(.+?)(?:\s*\n\s*###|$)',
+            'term_korean': r'### 한국어 번역\s*\n\s*(.+?)(?:\s*\n\s*###|$)',
+            'category': r'### 카테고리\s*\n\s*(.+?)(?:\s*\n\s*###|$)',
+            'alternative_translations': r'### 대안 번역\s*\n\s*(.+?)(?:\s*\n\s*###|$)',
+            'pronunciation': r'### 발음\s*\n\s*(.+?)(?:\s*\n\s*###|$)',
+            'definition_korean': r'### 한국어 정의\s*\n\s*(.+?)(?:\s*\n\s*###|\Z)',
+            'definition_english': r'### 영어 정의\s*\n\s*(.+?)(?:\s*\n\s*###|\Z)',
+            'usage_examples': r'### 사용 예시\s*\n((?:(?!\n###).|\n)*?)(?:\n###|\Z)',
+            'references': r'### 참고 문헌\s*\n((?:(?!\n###).|\n)*?)(?:\n###|\Z)',
+            'related_terms': r'### 관련 용어\s*\n\s*(.+?)(?:\s*\n\s*###|$)',
+            'github_username': r'### GitHub 사용자명\s*\n\s*(.+?)(?:\s*\n\s*###|$)',
+            'email': r'### 이메일.*?\n\s*(.+?)(?:\s*\n\s*###|$)',
+            'additional_notes': r'### 추가 설명\s*\n\s*(.+?)(?:\s*\n\s*###|\Z)'
         }
         
         for field, pattern in patterns.items():
@@ -55,17 +55,26 @@ class TermIssueValidator:
                 if value and value != '_No response_' and value != '':
                     parsed_data[field] = value
         
-        # 체크박스 파싱
+        # 체크박스 파싱 (GitHub 이슈 출력 형식에 맞춤)
         checkbox_patterns = {
-            'manual_validation': r'수동 검증 항목.*?\n((?:\s*- \[x\].*?\n)*)',
-            'agreement': r'동의 사항.*?\n((?:\s*- \[x\].*?\n)*)'
+            'manual_validation': r'수동 검증 항목.*?\n(.*?)(?:\n###|\n---|\Z)',
+            'agreement': r'동의 사항.*?\n(.*?)(?:\n###|\n---|\Z)'
         }
         
         for field, pattern in checkbox_patterns.items():
             match = re.search(pattern, issue_body, re.MULTILINE | re.DOTALL)
             if match:
-                checked_items = re.findall(r'- \[x\]\s*(.+)', match.group(1))
-                parsed_data[field] = checked_items
+                section_text = match.group(1)
+                # GitHub 이슈에서 체크된 항목들 찾기 (다양한 형식 지원)
+                checked_items = []
+                # - [x] 또는 - [X] 형식 찾기
+                checkbox_matches = re.findall(r'[-*]\s*\[[xX]\]\s*(.+?)(?:\n|$)', section_text)
+                checked_items.extend(checkbox_matches)
+                # •나 다른 불릿 포인트 형식도 지원
+                bullet_matches = re.findall(r'[•]\s*(.+?)(?:\n|$)', section_text)
+                checked_items.extend(bullet_matches)
+                
+                parsed_data[field] = [item.strip() for item in checked_items if item.strip()]
         
         return parsed_data
     
@@ -75,7 +84,6 @@ class TermIssueValidator:
             'contribution_type': '기여 유형',
             'term_english': '영어 용어',
             'term_korean': '한국어 번역',
-            'category': '카테고리',
             'definition_korean': '한국어 정의',
             'definition_english': '영어 정의',
             'usage_examples': '사용 예시',
@@ -94,10 +102,10 @@ class TermIssueValidator:
         """필드 형식 검증"""
         format_errors = []
         
-        # 영어 용어 검증 (영문, 숫자, 공백, 하이픈, 언더스코어만 허용)
+        # 영어 용어 검증 (영문, 숫자, 공백, 하이픈, 언더스코어, 괄호, 점, 슬래시, 콜론, 세미콜론, 쉼표 허용)
         if 'term_english' in data:
-            if not re.match(r'^[A-Za-z0-9\s\-_()]+$', data['term_english']):
-                format_errors.append("영어 용어는 영문자, 숫자, 공백, 하이픈, 언더스코어, 괄호만 포함해야 합니다")
+            if not re.match(r'^[A-Za-z0-9\s\-_()./,:;\'\"&+]+$', data['term_english']):
+                format_errors.append("영어 용어에 허용되지 않은 특수문자가 포함되어 있습니다")
         
         # 한국어 번역 검증 (한글, 영문, 숫자, 공백, 특수문자 허용)
         if 'term_korean' in data:
@@ -116,11 +124,11 @@ class TermIssueValidator:
         # GitHub 사용자명 검증
         if 'github_username' in data:
             username = data['github_username'].strip('@')
-            if not re.match(r'^[a-zA-Z0-9]([a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$', username):
+            if not re.match(r'^[a-zA-Z0-9][a-zA-Z0-9-]{0,38}$', username):
                 format_errors.append("GitHub 사용자명 형식이 올바르지 않습니다")
         
-        # 이메일 검증 (있는 경우)
-        if 'email' in data and data['email']:
+        # 이메일 검증 (있는 경우, '_No response_'가 아닌 경우만)
+        if 'email' in data and data['email'] and data['email'] != '_No response_':
             if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', data['email']):
                 format_errors.append("이메일 형식이 올바르지 않습니다")
         
@@ -131,19 +139,21 @@ class TermIssueValidator:
         quality_errors = []
         improvements = []
         
-        # 사용 예시 검증
+        # 사용 예시 검증 (더 유연하게)
         if 'usage_examples' in data:
             examples = data['usage_examples']
-            if '한국어:' not in examples or '영어:' not in examples:
-                quality_errors.append("사용 예시에는 한국어와 영어 예시가 모두 포함되어야 합니다")
+            # 한국어나 영어 중 하나라도 있으면 OK
+            if not (('한국어:' in examples or '한국어 :' in examples or '한국어' in examples) 
+                    and ('영어:' in examples or '영어 :' in examples or 'English:' in examples)):
+                # 더 관대한 검증: 실제 한국어/영어 내용이 있는지 확인
+                korean_content = bool(re.search(r'[가-힣]', examples))
+                english_content = bool(re.search(r'[a-zA-Z]', examples))
+                if not (korean_content and english_content):
+                    quality_errors.append("사용 예시에는 한국어와 영어 예시가 모두 포함되어야 합니다")
             
-            # 최소 예시 개수 확인
-            korean_examples = len(re.findall(r'한국어:', examples))
-            english_examples = len(re.findall(r'영어:', examples))
-            if korean_examples < 1 or english_examples < 1:
-                quality_errors.append("한국어와 영어 예시를 각각 최소 1개씩 제공해야 합니다")
-            elif korean_examples == 1 and english_examples == 1:
-                improvements.append("더 다양한 사용 맥락을 보여주기 위해 예시를 2개 이상 제공하는 것을 권장합니다")
+            # 최소 내용 길이 확인 (너무 짧지 않게)
+            if len(examples) < 30:
+                quality_errors.append("사용 예시를 더 구체적으로 작성해주세요")
         
         # 참고 문헌 검증
         if 'references' in data:
@@ -213,8 +223,33 @@ class TermIssueValidator:
         
         agreed_items = data.get('agreement', [])
         
+        # 더 정확한 매칭을 위해 정규화된 텍스트 비교
+        def normalize_text(text):
+            return re.sub(r'\s+', ' ', text.strip().lower())
+        
+        normalized_agreed = [normalize_text(item) for item in agreed_items]
+        
         for required in required_agreements:
-            if not any(required in item for item in agreed_items):
+            normalized_required = normalize_text(required)
+            found = False
+            
+            for agreed_item in normalized_agreed:
+                # 핵심 키워드들이 모두 포함되어 있는지 확인
+                if normalized_required in agreed_item:
+                    found = True
+                    break
+                # 부분 매칭도 허용 (키워드 기반)
+                elif required == "이 기여는 오픈소스 라이선스 하에 제공됩니다" and "오픈소스" in agreed_item and "라이선스" in agreed_item:
+                    found = True
+                    break
+                elif required == "제공한 정보가 정확하고 검증되었음을 확인합니다" and "정확" in agreed_item and "검증" in agreed_item and "확인" in agreed_item:
+                    found = True
+                    break
+                elif required == "커뮤니티 가이드라인을 읽고 준수합니다" and "가이드라인" in agreed_item and ("읽고" in agreed_item or "준수" in agreed_item):
+                    found = True
+                    break
+            
+            if not found:
                 missing_agreements.append(f"필수 동의 항목: '{required}'")
         
         return missing_agreements
@@ -381,28 +416,59 @@ class TermIssueValidator:
         if response.status_code != 201:
             print(f"댓글 추가 실패: {response.status_code}")
     
-    def validate_issue(self, issue_body: str, repo_owner: str, repo_name: str, issue_number: int):
+    def validate_issue(self, issue_body: str, repo_owner: str, repo_name: str, issue_number: int, issue_author: str = None):
         """전체 이슈 검증 프로세스"""
         print("이슈 검증 시작...")
         
         # 1. 이슈 본문 파싱
         data = self.parse_issue_body(issue_body)
         print(f"파싱된 데이터 필드 수: {len(data)}")
+        print(f"파싱된 데이터: {list(data.keys())}")
+        
+        # GitHub 사용자명 자동 설정 (이슈 작성자로부터)
+        if issue_author:
+            if 'github_username' not in data or not data['github_username'].strip():
+                data['github_username'] = f"@{issue_author}"
+                print(f"GitHub 사용자명을 이슈 작성자로 자동 설정: @{issue_author}")
+            else:
+                # 이슈에 입력된 사용자명과 실제 작성자가 다른 경우 검증
+                entered_username = data['github_username'].strip('@').lower()
+                if entered_username != issue_author.lower():
+                    print(f"경고: 입력된 사용자명({data['github_username']})과 이슈 작성자({issue_author})가 다릅니다.")
+        
+        # 체크박스 데이터 상세 출력 (디버깅용)
+        if 'agreement' in data:
+            print(f"파싱된 동의 항목들: {data['agreement']}")
+        else:
+            print("동의 항목이 파싱되지 않았습니다.")
+        
+        if 'manual_validation' in data:
+            print(f"파싱된 수동 검증 항목들: {data['manual_validation']}")
+        else:
+            print("수동 검증 항목이 파싱되지 않았습니다.")
         
         # 2. 필수 필드 검증
         missing_fields = self.validate_required_fields(data)
+        print(f"누락된 필드: {missing_fields}")
         
         # 3. 형식 검증
         format_errors = self.validate_field_formats(data)
+        print(f"형식 오류: {format_errors}")
         
         # 4. 내용 품질 검증
         quality_errors, improvements = self.validate_content_quality(data)
+        print(f"품질 오류: {quality_errors}")
+        print(f"개선 제안: {improvements}")
         
         # 5. 필수 동의 항목 확인
         missing_agreements = self.validate_required_checkboxes(data)
+        print(f"누락된 동의 항목: {missing_agreements}")
         
-        # 6. 중복 용어 검사
-        duplicate_error = self.check_duplicate_terms(data, repo_owner, repo_name)
+        # 6. 중복 용어 검사 (로컬 테스트에서는 스킵)
+        duplicate_error = None
+        if repo_owner != "test" and repo_name != "test":
+            duplicate_error = self.check_duplicate_terms(data, repo_owner, repo_name)
+        print(f"중복 용어 오류: {duplicate_error}")
         
         # 검증 결과 처리
         has_errors = bool(missing_fields or format_errors or quality_errors or missing_agreements or duplicate_error)
@@ -478,6 +544,7 @@ def main():
     parser.add_argument('--github-token', required=True, help='GitHub 토큰')
     parser.add_argument('--repo-owner', default='anthropics', help='저장소 소유자')
     parser.add_argument('--repo-name', default='kr-glossary', help='저장소 이름')
+    parser.add_argument('--issue-author', help='이슈 작성자 사용자명')
     
     args = parser.parse_args()
     
@@ -488,7 +555,8 @@ def main():
             args.issue_body, 
             args.repo_owner, 
             args.repo_name, 
-            int(args.issue_number)
+            int(args.issue_number),
+            args.issue_author
         )
         
         sys.exit(0 if success else 1)
