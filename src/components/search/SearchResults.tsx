@@ -17,8 +17,7 @@ import {
   AccordionDetails,
   Checkbox,
   FormControlLabel,
-  Card,
-  CardContent,
+
   IconButton,
   Tooltip,
   Fade,
@@ -37,7 +36,7 @@ import {
   GetApp,
   Bookmark,
   BookmarkBorder,
-  Category,
+
 } from '@mui/icons-material';
 import type { SearchResult, ValidationStatus } from '../../types';
 import TermCard from './TermCard';
@@ -91,8 +90,6 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   // searchTime is now passed as prop
   const [bookmarkedQueries, setBookmarkedQueries] = useState<string[]>([]);
-  const [categoryStats, setCategoryStats] = useState<{[key: string]: number}>({});
-
   // 북마크된 검색어 로드
   useEffect(() => {
     const bookmarks = localStorage.getItem('search-bookmarks');
@@ -100,18 +97,6 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       setBookmarkedQueries(JSON.parse(bookmarks));
     }
   }, []);
-
-  // 검색 결과가 변경될 때 카테고리 통계 계산
-  useEffect(() => {
-    if (results.length > 0) {
-      const stats: {[key: string]: number} = {};
-      results.forEach(result => {
-        const status = result.term.status || 'unknown';
-        stats[status] = (stats[status] || 0) + 1;
-      });
-      setCategoryStats(stats);
-    }
-  }, [results]);
 
   // 검색어 북마크 토글
   const toggleQueryBookmark = (queryToBookmark: string) => {
@@ -293,42 +278,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           </Box>
         </Box>
 
-        {/* 카테고리 통계 */}
-        {Object.keys(categoryStats).length > 0 && (
-          <Fade in={true}>
-            <Card sx={{ mb: 2, bgcolor: 'background.default' }}>
-              <CardContent sx={{ py: 2 }}>
-                <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                  <Category fontSize="small" />
-                  결과 분포
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  {Object.entries(categoryStats).map(([status, count]) => {
-                    const statusLabels = {
-                      validated: { label: '검증완료', color: 'success' as const },
-                      proposed: { label: '제안됨', color: 'warning' as const },
-                      draft: { label: '초안', color: 'info' as const },
-                      deprecated: { label: '사용중단', color: 'error' as const }
-                    };
-                    const statusInfo = statusLabels[status as keyof typeof statusLabels] || { label: status, color: 'default' as const };
-                    
-                    return (
-                      <Chip
-                        key={status}
-                        label={`${statusInfo.label}: ${count}`}
-                        size="small"
-                        color={statusInfo.color}
-                        variant="outlined"
-                        onClick={() => handleFilterChange({ status: status as ValidationStatus })}
-                        sx={{ cursor: 'pointer' }}
-                      />
-                    );
-                  })}
-                </Box>
-              </CardContent>
-            </Card>
-          </Fade>
-        )}
+
 
         {/* 기본 필터 및 정렬 */}
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>

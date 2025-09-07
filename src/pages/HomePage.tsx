@@ -3,9 +3,6 @@ import {
   Box,
   Typography,
   Container,
-  Card,
-  CardContent,
-  Chip,
   useTheme,
   Button,
   Skeleton,
@@ -14,10 +11,11 @@ import { TrendingUp, Verified, AutoAwesome, Explore, BarChart } from '@mui/icons
 import { useNavigate } from 'react-router-dom';
 import OnboardingTutorial from '../components/common/OnboardingTutorial';
 import SearchBox from '../components/search/SearchBox';
-import { getTermsCount } from '../utils/dataLoader';
+import { getTermsCount, loadContributors, loadOrganizations } from '../utils/dataLoader';
+import RecentTermsSection from '../components/common/RecentTermsSection';
 import { useIntersectionObserver } from '../utils/performanceOptimization';
 
-const HomePage: React.FC = () => {
+function HomePage() {
   const navigate = useNavigate();
   const theme = useTheme();
   const [stats, setStats] = useState([
@@ -43,22 +41,6 @@ const HomePage: React.FC = () => {
   // 실제 ref는 테스트 환경에서는 사용하지 않음
   const actualRef = process.env.NODE_ENV === 'test' ? { current: null } : intersectionRef;
 
-  // Mock data for categories and featured terms
-  const categories = [
-    { name: 'ML', label: '머신러닝' },
-    { name: 'DL', label: '딥러닝' },
-    { name: 'NLP', label: '자연어처리' },
-    { name: 'CV', label: '컴퓨터 비전' },
-    { name: 'RL', label: '강화학습' },
-    { name: 'GAI', label: '생성형 AI' },
-  ];
-
-  const featuredTerms = [
-    { english: 'Machine Learning', korean: '기계학습' },
-    { english: 'Deep Learning', korean: '딥러닝' },
-    { english: 'Natural Language Processing', korean: '자연어처리' },
-  ];
-
   // 테스트 환경에서는 즉시 로드, 아니면 hasLoadedStats가 true가 될 때 로드
   useEffect(() => {
     if (process.env.NODE_ENV === 'test') {
@@ -71,12 +53,38 @@ const HomePage: React.FC = () => {
 
     const loadData = async () => {
       try {
-        const count = await getTermsCount();
+        // 실제 데이터 기반으로 통계 계산
+        const [terms, contributors, organizations] = await Promise.all([
+          getTermsCount(),
+          loadContributors(),
+          loadOrganizations(),
+        ]);
+
         setStats([
-          { label: '등록된 용어', value: count.toString(), icon: <TrendingUp />, loading: false },
-          { label: '활성 기여자', value: '15', icon: <Verified />, loading: false },
-          { label: '검증된 조직', value: '8', icon: <Verified />, loading: false },
-          { label: '월간 조회수', value: '1.2K', icon: <BarChart />, loading: false },
+          { 
+            label: '등록된 용어', 
+            value: terms.toString(), 
+            icon: <TrendingUp />, 
+            loading: false 
+          },
+          { 
+            label: '활성 기여자', 
+            value: contributors.length.toString(), 
+            icon: <Verified />, 
+            loading: false 
+          },
+          { 
+            label: '검증된 조직', 
+            value: organizations.length.toString(), 
+            icon: <Verified />, 
+            loading: false 
+          },
+          { 
+            label: '월간 조회수', 
+            value: '1.2K', 
+            icon: <BarChart />, 
+            loading: false 
+          },
         ]);
       } catch (error) {
         console.error('Failed to load data:', error);
@@ -214,7 +222,6 @@ const HomePage: React.FC = () => {
             </Button>
           </Box>
 
-
         </Container>
       </Box>
 
@@ -258,73 +265,13 @@ const HomePage: React.FC = () => {
         </Box>
       </Container>
 
-      {/* Categories Section */}
-      <Container sx={{ py: 4 }}>
-        <Typography variant="h4" sx={{ mb: 4, textAlign: 'center', fontWeight: 600 }}>
-          용어 카테고리
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-          {categories.map((category) => (
-            <Chip
-              key={category.name}
-              label={category.name}
-              variant="outlined"
-              color="primary"
-              onClick={() => navigate(`/search?category=${category.name}`)}
-              sx={{ 
-                fontSize: '1rem', 
-                fontWeight: 600,
-                px: 2,
-                py: 1,
-                height: 'auto',
-                cursor: 'pointer',
-                '&:hover': {
-                  backgroundColor: 'primary.light',
-                  color: 'white',
-                }
-              }}
-            />
-          ))}
-        </Box>
-      </Container>
-
-      {/* Featured Terms Section */}
-      <Container sx={{ py: 4, backgroundColor: 'background.default' }}>
-        <Typography variant="h4" sx={{ mb: 4, textAlign: 'center', fontWeight: 600 }}>
-          추천 용어
-        </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3 }}>
-          {featuredTerms.map((term, index) => (
-            <Card
-              key={index}
-              sx={{
-                cursor: 'pointer',
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: 3,
-                },
-              }}
-              onClick={() => navigate(`/terms/${encodeURIComponent(term.english)}`)}
-            >
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 1 }}>
-                  {term.english}
-                </Typography>
-                <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 600 }}>
-                  {term.korean}
-                </Typography>
-              </CardContent>
-            </Card>
-          ))}
-        </Box>
-      </Container>
-
+      {/* 신규 등록 용어 섹션 */}
+      <RecentTermsSection limit={3} />
 
       {/* 튜토리얼 컴포넌트 */}
       <OnboardingTutorial />
     </Box>
   );
-};
+}
 
 export default HomePage;

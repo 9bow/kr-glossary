@@ -223,6 +223,24 @@ export const getTermsCount = async (): Promise<number> => {
   const terms = await loadTerms();
   return terms.length;
 };
+/**
+ * 최근 등록된 용어를 가져옵니다 (빌드 시점 기준)
+ */
+export const getRecentTerms = async (limit: number = 5): Promise<Term[]> => {
+  const terms = await loadTerms();
+  
+  // 빌드 시점에서 최신 용어를 선택하기 위해 ID 기반으로 정렬
+  // ID는 보통 생성 순서를 나타내므로 최근 항목이 뒤쪽에 위치
+  const sortedTerms = [...terms].sort((a, b) => {
+    // ID가 숫자인 경우 숫자로 비교, 문자열인 경우 문자열로 비교
+    if (!isNaN(Number(a.id)) && !isNaN(Number(b.id))) {
+      return Number(b.id) - Number(a.id); // 내림차순 (최신순)
+    }
+    return b.id.localeCompare(a.id); // 문자열 내림차순
+  });
+  
+  return sortedTerms.slice(0, limit);
+};
 
 /**
  * 검증된 조직 수를 계산합니다.
