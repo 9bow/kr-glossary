@@ -21,20 +21,65 @@ class ReviewerAssigner:
         }
     
     def load_admin_config(self, repo_owner: str, repo_name: str) -> Dict:
-        """관리자 설정 파일 로드"""
+        """관리자 설정 파일 로드 및 실제 GitHub 관리자 정보와 병합"""
         try:
+            # 설정 파일에서 관리자 정보 로드
             url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/.github/config/admins.json"
             response = requests.get(url, headers=self.headers)
             
+            config = {}
             if response.status_code == 200:
                 file_data = response.json()
                 import base64
                 content = base64.b64decode(file_data['content']).decode('utf-8')
-                return json.loads(content)
+                config = json.loads(content)
+            
+            # GitHub API에서 실제 저장소 협업자 정보 가져오기
+            collaborators_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/collaborators"
+            collab_response = requests.get(collaborators_url, headers=self.headers)
+            
+            if collab_response.status_code == 200:
+                collaborators = collab_response.json()
+                
+                # 실제 GitHub 관리자들 추출 (admin, maintain, write 권한 가진 사용자)
+                actual_admins = {}
+                for collab in collaborators:
+                    username = collab['login']
+                    permissions = collab.get('permissions', {})
+                    
+                    # 관리자 권한을 가진 사용자들만 추출
+                    if permissions.get('admin') or permissions.get('maintain'):
+                        # 설정 파일에 해당 사용자 정보가 있으면 사용, 없으면 기본값
+                        admin_info = config.get('admins', {}).get(username, {})
+                        
+                        # GitHub 권한에 따른 역할 매핑
+                        if permissions.get('admin'):
+                            role = admin_info.get('role', 'owner')
+                        elif permissions.get('maintain'):
+                            role = admin_info.get('role', 'maintainer')
+                        else:
+                            role = admin_info.get('role', 'reviewer')
+                        
+                        actual_admins[username] = {
+                            'role': role,
+                            'name': admin_info.get('name', username),
+                            'specializations': admin_info.get('specializations', ['전체 영역']),
+                            'permissions': admin_info.get('permissions', ['approve']),
+                            'email': admin_info.get('email', ''),
+                            'github': username,
+                            'active': admin_info.get('active', True)
+                        }
+                
+                # 실제 관리자 정보로 업데이트
+                config['admins'] = actual_admins
+                
+                print(f"실제 GitHub 관리자 {len(actual_admins)}명 로드됨: {', '.join(actual_admins.keys())}")
+            
+            return config
+            
         except Exception as e:
             print(f"관리자 설정 로드 실패: {e}")
-        
-        return {}
+            return {}
     
     def get_issue_info(self, repo_owner: str, repo_name: str, issue_number: int) -> Dict:
         """이슈 정보 가져오기"""
@@ -197,7 +242,8 @@ class ReviewerAssigner:
             
             comment += f"- {role_emoji} @{username} ({name}) - {role}"
             
-            if specialization and specialization in specializations:
+            # 전문가 표시는 실제로 전문 분야가 있고 매칭되는 경우에만
+            if specialization and specialization in specializations and specialization != '전체 영역':
                 comment += f" ⭐ **{specialization} 전문가**"
             
             comment += "\n"
@@ -209,7 +255,6 @@ class ReviewerAssigner:
 ### 📋 검토 요청 사항
 
 **카테고리**: {category}
-**전문 분야**: {specialization or 'N/A'}
 **필요한 승인 수**: {min_approvals}개
 
 ### 🔍 검토 체크리스트

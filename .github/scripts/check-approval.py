@@ -18,14 +18,11 @@ class ApprovalChecker:
             'Authorization': f'token {github_token}',
             'Accept': 'application/vnd.github.v3+json'
         }
-        self.repo = 'kr-glossary'  # 실제 저장소명으로 수정 필요
+        self.repo_owner = None  # 실행 시 설정
+        self.repo_name = None   # 실행 시 설정
         
-        # 관리자 목록 (실제 GitHub 사용자명으로 수정 필요)
-        self.admins = [
-            'admin1',
-            'admin2', 
-            'admin3'
-        ]
+        # 관리자 목록은 GitHub API에서 동적으로 가져옴
+        self.admins = []
         
         # 승인 키워드 패턴
         self.approval_patterns = [
